@@ -20,7 +20,7 @@ public class Product {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "seller_id", nullable = false)
+    @JoinColumn(name = "seller_id")
     private User seller;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -35,17 +35,20 @@ public class Product {
 
     private Integer price;
 
+    @Builder.Default
     @Column(nullable = false)
     private Boolean isFree = false;
 
     @Column(nullable = false)
     private String productCondition;
 
+    @Builder.Default
     @Column(nullable = false)
     private String saleStatus = "available";
 
     private String location;
 
+    @Builder.Default
     @Column(nullable = false)
     private Integer viewCount = 0;
 
