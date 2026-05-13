@@ -1,6 +1,8 @@
 package com.example.projectback.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
@@ -9,6 +11,8 @@ import java.time.LocalDateTime;
 @Table(name = "users")
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class User {
 
     @Id
@@ -40,9 +44,11 @@ public class User {
     @Column(length = 1)
     private String gender;
 
+    @Builder.Default
     @Column(nullable = false)
     private Integer trustScore = 0;
 
+    @Builder.Default
     @Column(nullable = false)
     private Boolean isVerified = false;
 
