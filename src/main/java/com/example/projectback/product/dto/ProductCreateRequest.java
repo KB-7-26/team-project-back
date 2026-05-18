@@ -10,7 +10,6 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProductCreateRequest {
-    private Long sellerId;
     private Long categoryId;
     private String title;
     private String description;
