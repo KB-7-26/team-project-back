@@ -2,6 +2,7 @@ package com.example.projectback.board.service;
 
 import com.example.projectback.board.dto.BoardPostCreateRequest;
 import com.example.projectback.board.dto.BoardPostCreateResponse;
+import com.example.projectback.board.dto.BoardPostListItemResponse;
 import com.example.projectback.board.repository.BoardPostRepository;
 import com.example.projectback.entity.BoardPost;
 import com.example.projectback.entity.User;
@@ -13,7 +14,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.*;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -41,6 +45,76 @@ class BoardPostServiceTest {
     void setUp() {
         mockUser = mock(User.class);
     }
+
+    // ── getPosts ──────────────────────────────────────────────
+
+    @Test
+    @DisplayName("게시글 목록 조회 - 일반 게시글은 닉네임 반환")
+    void getPosts_nonAnonymous_returnsNickname() {
+        // given
+        User author = mock(User.class);
+        given(author.getNickname()).willReturn("홍길동");
+
+        BoardPost post = BoardPost.builder()
+                .author(author)
+                .title("일반 게시글")
+                .content("내용")
+                .isAnonymous(false)
+                .viewCount(0)
+                .build();
+
+        Pageable pageable = PageRequest.of(0, 10, Sort.by("createdAt").descending());
+        given(boardPostRepository.findAll(pageable)).willReturn(new PageImpl<>(List.of(post)));
+
+        // when
+        Page<BoardPostListItemResponse> result = boardPostService.getPosts(pageable);
+
+        // then
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).getNickname()).isEqualTo("홍길동");
+        assertThat(result.getContent().get(0).getTitle()).isEqualTo("일반 게시글");
+    }
+
+    @Test
+    @DisplayName("게시글 목록 조회 - 익명 게시글은 닉네임을 '익명'으로 반환")
+    void getPosts_anonymous_returnsAnonymous() {
+        // given
+        User author = mock(User.class);
+
+        BoardPost post = BoardPost.builder()
+                .author(author)
+                .title("익명 게시글")
+                .content("내용")
+                .isAnonymous(true)
+                .viewCount(0)
+                .build();
+
+        Pageable pageable = PageRequest.of(0, 10, Sort.by("createdAt").descending());
+        given(boardPostRepository.findAll(pageable)).willReturn(new PageImpl<>(List.of(post)));
+
+        // when
+        Page<BoardPostListItemResponse> result = boardPostService.getPosts(pageable);
+
+        // then
+        assertThat(result.getContent().get(0).getNickname()).isEqualTo("익명");
+    }
+
+    @Test
+    @DisplayName("게시글 목록 조회 - 게시글이 없으면 빈 페이지 반환")
+    void getPosts_empty_returnsEmptyPage() {
+        // given
+        Pageable pageable = PageRequest.of(0, 10, Sort.by("createdAt").descending());
+        given(boardPostRepository.findAll(pageable)).willReturn(Page.empty());
+
+        // when
+        Page<BoardPostListItemResponse> result = boardPostService.getPosts(pageable);
+
+        // then
+        assertThat(result.getContent()).isEmpty();
+        assertThat(result.getTotalElements()).isZero();
+    }
+
+    // ── createPost ───────────────────────────────────────────
 
     @Test
     @DisplayName("게시글 등록 성공")
