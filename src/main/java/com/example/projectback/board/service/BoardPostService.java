@@ -2,11 +2,14 @@ package com.example.projectback.board.service;
 
 import com.example.projectback.board.dto.BoardPostCreateRequest;
 import com.example.projectback.board.dto.BoardPostCreateResponse;
+import com.example.projectback.board.dto.BoardPostListItemResponse;
 import com.example.projectback.board.repository.BoardPostRepository;
 import com.example.projectback.entity.BoardPost;
 import com.example.projectback.entity.User;
 import com.example.projectback.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,6 +19,12 @@ public class BoardPostService {
 
     private final BoardPostRepository boardPostRepository;
     private final UserRepository userRepository;
+
+    @Transactional(readOnly = true)
+    public Page<BoardPostListItemResponse> getPosts(Pageable pageable) {
+        return boardPostRepository.findAll(pageable)
+                .map(BoardPostListItemResponse::new);
+    }
 
     @Transactional
     public BoardPostCreateResponse createPost(Long userId, BoardPostCreateRequest request) {
