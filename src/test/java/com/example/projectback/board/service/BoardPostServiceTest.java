@@ -2,6 +2,7 @@ package com.example.projectback.board.service;
 
 import com.example.projectback.board.dto.BoardPostCreateRequest;
 import com.example.projectback.board.dto.BoardPostCreateResponse;
+import com.example.projectback.board.dto.BoardPostDetailResponse;
 import com.example.projectback.board.dto.BoardPostListItemResponse;
 import com.example.projectback.board.repository.BoardPostRepository;
 import com.example.projectback.entity.BoardPost;
@@ -18,6 +19,7 @@ import org.springframework.data.domain.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -112,6 +114,146 @@ class BoardPostServiceTest {
         // then
         assertThat(result.getContent()).isEmpty();
         assertThat(result.getTotalElements()).isZero();
+    }
+
+    // ── getPostDetail ─────────────────────────────────────────
+
+    @Test
+    @DisplayName("게시글 상세 조회 - 정상 조회, 조회수 증가")
+    void getPostDetail_success_incrementsViewCount() {
+        // given
+        User author = mock(User.class);
+        given(author.getId()).willReturn(1L);
+        given(author.getNickname()).willReturn("홍길동");
+
+        BoardPost post = BoardPost.builder()
+                .author(author)
+                .title("상세 제목")
+                .content("상세 내용")
+                .isAnonymous(false)
+                .viewCount(5)
+                .build();
+
+        given(boardPostRepository.findById(1L)).willReturn(Optional.of(post));
+
+        // when
+        BoardPostDetailResponse response = boardPostService.getPostDetail(1L, 1L);
+
+        // then
+        assertThat(response.getTitle()).isEqualTo("상세 제목");
+        assertThat(response.getContent()).isEqualTo("상세 내용");
+        assertThat(response.getNickname()).isEqualTo("홍길동");
+        assertThat(response.getViewCount()).isEqualTo(6);
+    }
+
+    @Test
+    @DisplayName("게시글 상세 조회 - 익명 게시글은 닉네임을 '익명'으로 반환")
+    void getPostDetail_anonymous_returnsAnonymous() {
+        // given
+        User author = mock(User.class);
+        given(author.getId()).willReturn(1L);
+
+        BoardPost post = BoardPost.builder()
+                .author(author)
+                .title("익명 게시글")
+                .content("내용")
+                .isAnonymous(true)
+                .viewCount(0)
+                .build();
+
+        given(boardPostRepository.findById(1L)).willReturn(Optional.of(post));
+
+        // when
+        BoardPostDetailResponse response = boardPostService.getPostDetail(1L, 2L);
+
+        // then
+        assertThat(response.getNickname()).isEqualTo("익명");
+    }
+
+    @Test
+    @DisplayName("게시글 상세 조회 - 본인 게시글이면 isOwner=true")
+    void getPostDetail_owner_isOwnerTrue() {
+        // given
+        User author = mock(User.class);
+        given(author.getId()).willReturn(1L);
+        given(author.getNickname()).willReturn("홍길동");
+
+        BoardPost post = BoardPost.builder()
+                .author(author)
+                .title("제목")
+                .content("내용")
+                .isAnonymous(false)
+                .viewCount(0)
+                .build();
+
+        given(boardPostRepository.findById(1L)).willReturn(Optional.of(post));
+
+        // when
+        BoardPostDetailResponse response = boardPostService.getPostDetail(1L, 1L);
+
+        // then
+        assertThat(response.isOwner()).isTrue();
+    }
+
+    @Test
+    @DisplayName("게시글 상세 조회 - 타인 게시글이면 isOwner=false")
+    void getPostDetail_notOwner_isOwnerFalse() {
+        // given
+        User author = mock(User.class);
+        given(author.getId()).willReturn(1L);
+        given(author.getNickname()).willReturn("홍길동");
+
+        BoardPost post = BoardPost.builder()
+                .author(author)
+                .title("제목")
+                .content("내용")
+                .isAnonymous(false)
+                .viewCount(0)
+                .build();
+
+        given(boardPostRepository.findById(1L)).willReturn(Optional.of(post));
+
+        // when
+        BoardPostDetailResponse response = boardPostService.getPostDetail(1L, 99L);
+
+        // then
+        assertThat(response.isOwner()).isFalse();
+    }
+
+    @Test
+    @DisplayName("게시글 상세 조회 - 비로그인(currentUserId=null)이면 isOwner=false")
+    void getPostDetail_notLoggedIn_isOwnerFalse() {
+        // given
+        User author = mock(User.class);
+        given(author.getNickname()).willReturn("홍길동");
+
+        BoardPost post = BoardPost.builder()
+                .author(author)
+                .title("제목")
+                .content("내용")
+                .isAnonymous(false)
+                .viewCount(0)
+                .build();
+
+        given(boardPostRepository.findById(1L)).willReturn(Optional.of(post));
+
+        // when
+        BoardPostDetailResponse response = boardPostService.getPostDetail(1L, null);
+
+        // then
+        assertThat(response.isOwner()).isFalse();
+    }
+
+    @Test
+    @DisplayName("게시글 상세 조회 - 존재하지 않는 게시글이면 예외 발생")
+    void getPostDetail_notFound_throwsException() {
+        // given
+        given(boardPostRepository.findById(999L)).willReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> boardPostService.getPostDetail(999L, null))
+                .isInstanceOf(NoSuchElementException.class)
+                .hasMessage("게시글을 찾을 수 없습니다.");
     }
 
     // ── createPost ───────────────────────────────────────────
