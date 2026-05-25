@@ -2,6 +2,7 @@ package com.example.projectback.board.service;
 
 import com.example.projectback.board.dto.BoardPostCreateRequest;
 import com.example.projectback.board.dto.BoardPostCreateResponse;
+import com.example.projectback.board.dto.BoardPostDetailResponse;
 import com.example.projectback.board.dto.BoardPostListItemResponse;
 import com.example.projectback.board.repository.BoardPostRepository;
 import com.example.projectback.entity.BoardPost;
@@ -12,6 +13,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +27,14 @@ public class BoardPostService {
     public Page<BoardPostListItemResponse> getPosts(Pageable pageable) {
         return boardPostRepository.findAll(pageable)
                 .map(BoardPostListItemResponse::new);
+    }
+
+    @Transactional
+    public BoardPostDetailResponse getPostDetail(Long postId, Long currentUserId) {
+        BoardPost post = boardPostRepository.findById(postId)
+                .orElseThrow(() -> new NoSuchElementException("게시글을 찾을 수 없습니다."));
+        post.incrementViewCount();
+        return new BoardPostDetailResponse(post, currentUserId);
     }
 
     @Transactional

@@ -40,6 +40,10 @@ public class BoardPost {
 
     private LocalDateTime updatedAt;
 
+    public void incrementViewCount() {
+        this.viewCount++;
+    }
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
