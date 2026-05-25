@@ -8,7 +8,6 @@ import com.example.projectback.product.dto.ProductCreateRequest;
 import com.example.projectback.product.dto.ProductCreateResponse;
 import com.example.projectback.product.dto.ProductListResponse;
 import com.example.projectback.product.repository.CategoryRepository;
-import com.example.projectback.product.repository.ProductFavoriteRepository;
 import com.example.projectback.product.repository.ProductImageRepository;
 import com.example.projectback.product.repository.ProductRepository;
 import com.example.projectback.security.CurrentUserProvider;
@@ -26,7 +25,6 @@ public class ProductService {
     private final ProductImageRepository productImageRepository;
     private final CategoryRepository categoryRepository;
     private final CurrentUserProvider currentUserProvider;
-    private final ProductFavoriteRepository productFavoriteRepository;
 
     @Transactional
     public ProductCreateResponse createProduct(ProductCreateRequest request) {
@@ -67,31 +65,10 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
-    public Page<ProductListResponse> getProducts(Long categoryId, String saleStatus, Pageable pageable){
-        Page<Product> products = (categoryId != null)
-                ? productRepository.findAllByCategoryIdAndSaleStatus(categoryId, saleStatus, pageable)
-                : productRepository.findAllBySaleStatus(saleStatus, pageable);
-
-        return products.map(product -> {
-            String thumbnailUrl = productImageRepository.findFirstByProductIdOrderBySortOrderAsc(product.getId())
-                    .map(ProductImage::getImageUrl)
-                    .orElse(null);
-
-            long favoriteCount = productFavoriteRepository.countByProductId(product.getId());
-
-            return new ProductListResponse(
-                    product.getId(),
-                    product.getTitle(),
-                    product.getPrice(),
-                    product.getIsFree(),
-                    product.getSaleStatus(),
-                    product.getLocation(),
-                    thumbnailUrl,
-                    product.getSeller().getNickname(),
-                    favoriteCount,
-                    product.getCreatedAt()
-            );
-        });
+    public Page<ProductListResponse> getProducts(Long categoryId,
+                                                 String saleStatus, Pageable pageable) {
+        return productRepository.findProductList(categoryId, saleStatus, pageable);
     }
+
 }
 

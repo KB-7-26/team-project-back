@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 public class ProductListResponse {
     private Long id;
     private String title;
-    private Integer price;
+    private Integer price;  
     private Boolean isFree;
     private String saleStatus;
     private String location;
