@@ -44,6 +44,12 @@ public class BoardPost {
         this.viewCount++;
     }
 
+    public void update(String title, String content, Boolean isAnonymous) {
+        this.title = title;
+        this.content = content;
+        this.isAnonymous = isAnonymous != null ? isAnonymous : false;
+    }
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();

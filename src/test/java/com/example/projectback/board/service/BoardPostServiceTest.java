@@ -4,6 +4,7 @@ import com.example.projectback.board.dto.BoardPostCreateRequest;
 import com.example.projectback.board.dto.BoardPostCreateResponse;
 import com.example.projectback.board.dto.BoardPostDetailResponse;
 import com.example.projectback.board.dto.BoardPostListItemResponse;
+import com.example.projectback.board.dto.BoardPostUpdateRequest;
 import com.example.projectback.board.repository.BoardPostRepository;
 import com.example.projectback.entity.BoardPost;
 import com.example.projectback.entity.User;
@@ -16,6 +17,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.*;
+import org.springframework.security.access.AccessDeniedException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -305,5 +307,97 @@ class BoardPostServiceTest {
 
         // then
         verify(boardPostRepository).save(any(BoardPost.class));
+    }
+
+    // ── updatePost ───────────────────────────────────────────
+
+    @Test
+    @DisplayName("게시글 수정 성공 - 작성자만 수정 가능")
+    void updatePost_author_success() {
+        // given
+        User author = mock(User.class);
+        given(author.getId()).willReturn(1L);
+
+        BoardPost post = BoardPost.builder()
+                .author(author)
+                .title("기존 제목")
+                .content("기존 내용")
+                .isAnonymous(false)
+                .viewCount(0)
+                .build();
+
+        BoardPostUpdateRequest request = new BoardPostUpdateRequest("수정 제목", "수정 내용", true);
+        given(boardPostRepository.findById(1L)).willReturn(Optional.of(post));
+
+        // when
+        BoardPostDetailResponse response = boardPostService.updatePost(1L, 1L, request);
+
+        // then
+        assertThat(response.getTitle()).isEqualTo("수정 제목");
+        assertThat(response.getContent()).isEqualTo("수정 내용");
+        assertThat(response.getIsAnonymous()).isTrue();
+        assertThat(response.isOwner()).isTrue();
+    }
+
+    @Test
+    @DisplayName("게시글 수정 실패 - 작성자가 아니면 권한 예외 발생")
+    void updatePost_notAuthor_throwsAccessDeniedException() {
+        // given
+        User author = mock(User.class);
+        given(author.getId()).willReturn(1L);
+
+        BoardPost post = BoardPost.builder()
+                .author(author)
+                .title("제목")
+                .content("내용")
+                .isAnonymous(false)
+                .viewCount(0)
+                .build();
+
+        BoardPostUpdateRequest request = new BoardPostUpdateRequest("수정 제목", "수정 내용", false);
+        given(boardPostRepository.findById(1L)).willReturn(Optional.of(post));
+
+        // when & then
+        assertThatThrownBy(() -> boardPostService.updatePost(1L, 2L, request))
+                .isInstanceOf(AccessDeniedException.class)
+                .hasMessage("게시글 수정/삭제 권한이 없습니다.");
+    }
+
+    // ── deletePost ───────────────────────────────────────────
+
+    @Test
+    @DisplayName("게시글 삭제 성공 - 작성자만 삭제 가능")
+    void deletePost_author_success() {
+        // given
+        User author = mock(User.class);
+        given(author.getId()).willReturn(1L);
+
+        BoardPost post = BoardPost.builder()
+                .author(author)
+                .title("제목")
+                .content("내용")
+                .isAnonymous(false)
+                .viewCount(0)
+                .build();
+
+        given(boardPostRepository.findById(1L)).willReturn(Optional.of(post));
+
+        // when
+        boardPostService.deletePost(1L, 1L);
+
+        // then
+        verify(boardPostRepository).delete(post);
+    }
+
+    @Test
+    @DisplayName("게시글 삭제 실패 - 존재하지 않는 게시글이면 예외 발생")
+    void deletePost_notFound_throwsException() {
+        // given
+        given(boardPostRepository.findById(999L)).willReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> boardPostService.deletePost(999L, 1L))
+                .isInstanceOf(NoSuchElementException.class)
+                .hasMessage("게시글을 찾을 수 없습니다.");
     }
 }
