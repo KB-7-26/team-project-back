@@ -8,18 +8,13 @@ import com.example.projectback.board.dto.BoardPostUpdateRequest;
 import com.example.projectback.board.service.BoardPostService;
 import com.example.projectback.common.ApiResponse;
 import com.example.projectback.security.CurrentUserProvider;
-import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping("/api/posts")
@@ -47,24 +42,15 @@ public class BoardController {
         } catch (Exception ignored) {
         }
 
-        try {
-            BoardPostDetailResponse response = boardPostService.getPostDetail(id, currentUserId);
-            return ResponseEntity.ok(ApiResponse.success(response, "게시글 상세 조회 성공"));
-        } catch (NoSuchElementException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.failure(e.getMessage()));
-        }
+        BoardPostDetailResponse response = boardPostService.getPostDetail(id, currentUserId);
+        return ResponseEntity.ok(ApiResponse.success(response, "게시글 상세 조회 성공"));
     }
 
     @PostMapping
     public ResponseEntity<ApiResponse<BoardPostCreateResponse>> createPost(
-            @RequestBody BoardPostCreateRequest request,
-            HttpSession session) {
+            @RequestBody BoardPostCreateRequest request) {
 
-        Long userId = (Long) session.getAttribute("userId");
-        if (userId == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponse.failure("인증이 필요합니다."));
-        }
-
+        Long userId = currentUserProvider.getCurrentUserId();
         BoardPostCreateResponse response = boardPostService.createPost(userId, request);
         return ResponseEntity.ok(ApiResponse.success(response, "게시글 등록 성공"));
     }
@@ -72,41 +58,17 @@ public class BoardController {
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<BoardPostDetailResponse>> updatePost(
             @PathVariable Long id,
-            @RequestBody BoardPostUpdateRequest request,
-            HttpSession session) {
+            @RequestBody BoardPostUpdateRequest request) {
 
-        Long userId = (Long) session.getAttribute("userId");
-        if (userId == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponse.failure("인증이 필요합니다."));
-        }
-
-        try {
-            BoardPostDetailResponse response = boardPostService.updatePost(id, userId, request);
-            return ResponseEntity.ok(ApiResponse.success(response, "게시글 수정 성공"));
-        } catch (NoSuchElementException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.failure(e.getMessage()));
-        } catch (AccessDeniedException e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiResponse.failure(e.getMessage()));
-        }
+        Long userId = currentUserProvider.getCurrentUserId();
+        BoardPostDetailResponse response = boardPostService.updatePost(id, userId, request);
+        return ResponseEntity.ok(ApiResponse.success(response, "게시글 수정 성공"));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<Void>> deletePost(
-            @PathVariable Long id,
-            HttpSession session) {
-
-        Long userId = (Long) session.getAttribute("userId");
-        if (userId == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponse.failure("인증이 필요합니다."));
-        }
-
-        try {
-            boardPostService.deletePost(id, userId);
-            return ResponseEntity.ok(ApiResponse.success("게시글 삭제 성공"));
-        } catch (NoSuchElementException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.failure(e.getMessage()));
-        } catch (AccessDeniedException e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiResponse.failure(e.getMessage()));
-        }
+    public ResponseEntity<ApiResponse<Void>> deletePost(@PathVariable Long id) {
+        Long userId = currentUserProvider.getCurrentUserId();
+        boardPostService.deletePost(id, userId);
+        return ResponseEntity.ok(ApiResponse.success("게시글 삭제 성공"));
     }
 }

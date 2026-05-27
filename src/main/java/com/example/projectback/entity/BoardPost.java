@@ -1,7 +1,7 @@
 package com.example.projectback.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,9 +10,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "board_posts")
 @Getter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class BoardPost {
 
     @Id
@@ -30,18 +28,23 @@ public class BoardPost {
     private String content;
 
     @Column(nullable = false)
-    private Boolean isAnonymous = false;
+    private Boolean isAnonymous;
 
     @Column(nullable = false)
-    private Integer viewCount = 0;
+    private Integer viewCount;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
 
-    public void incrementViewCount() {
-        this.viewCount++;
+    @Builder
+    private BoardPost(User author, String title, String content, Boolean isAnonymous) {
+        this.author = author;
+        this.title = title;
+        this.content = content;
+        this.isAnonymous = isAnonymous != null ? isAnonymous : false;
+        this.viewCount = 0;
     }
 
     public void update(String title, String content, Boolean isAnonymous) {
