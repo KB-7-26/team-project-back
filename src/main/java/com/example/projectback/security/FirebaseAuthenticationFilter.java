@@ -1,5 +1,8 @@
 package com.example.projectback.security;
 
+import com.example.projectback.entity.User;
+import com.example.projectback.user.repository.UserRepository;
+import com.google.firebase.auth.FirebaseToken;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -9,9 +12,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -21,12 +21,12 @@ import java.io.IOException;
 
 @Component
 @RequiredArgsConstructor
-public class JwtAuthenticationFilter extends OncePerRequestFilter {
+public class FirebaseAuthenticationFilter extends OncePerRequestFilter {
 
     private static final String BEARER_PREFIX = "Bearer ";
 
-    private final JwtTokenProvider jwtTokenProvider;
-    private final UserDetailsService userDetailsService;
+    private final FirebaseTokenVerifier firebaseTokenVerifier;
+    private final UserRepository userRepository;
     private final SecurityResponseWriter securityResponseWriter;
 
     @Override
@@ -43,21 +43,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 return;
             }
 
-            String loginId = jwtTokenProvider.getLoginId(token);
-            UserDetails userDetails = userDetailsService.loadUserByUsername(loginId);
+            FirebaseToken firebaseToken = firebaseTokenVerifier.verify(token);
+            User user = userRepository.findByFirebaseUid(firebaseToken.getUid()).orElse(null);
+            FirebaseUserPrincipal principal = FirebaseUserPrincipal.from(firebaseToken, user);
 
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                    userDetails,
+                    principal,
                     null,
-                    userDetails.getAuthorities()
+                    principal.getAuthorities()
             );
             authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
             filterChain.doFilter(request, response);
-        } catch (JwtAuthenticationException | UsernameNotFoundException exception) {
+        } catch (FirebaseAuthenticationException exception) {
             SecurityContextHolder.clearContext();
-            securityResponseWriter.write(response, HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰입니다.");
+            securityResponseWriter.write(response, HttpStatus.UNAUTHORIZED, "유효하지 않은 Firebase 토큰입니다.");
         }
     }
 
@@ -69,12 +70,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         if (!authorizationHeader.startsWith(BEARER_PREFIX)) {
-            throw new JwtAuthenticationException("지원하지 않는 인증 헤더입니다.");
+            throw new FirebaseAuthenticationException("지원하지 않는 인증 헤더입니다.");
         }
 
         String token = authorizationHeader.substring(BEARER_PREFIX.length()).trim();
         if (!StringUtils.hasText(token)) {
-            throw new JwtAuthenticationException("토큰 값이 비어 있습니다.");
+            throw new FirebaseAuthenticationException("토큰 값이 비어 있습니다.");
         }
         return token;
     }

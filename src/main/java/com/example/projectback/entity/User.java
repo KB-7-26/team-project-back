@@ -20,15 +20,12 @@ public class User {
     private Long id;
 
     @Column(nullable = false, unique = true)
-    private String loginId;
-
-    @Column(nullable = false)
-    private String password;
+    private String firebaseUid;
 
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String nickname;
 
     @Column(nullable = false, unique = true)
@@ -39,9 +36,10 @@ public class User {
 
     private String profileImageUrl;
 
+    @Column(nullable = false)
     private String cohort;
 
-    @Column(length = 1)
+    @Column(nullable = false, length = 1)
     private String gender;
 
     @Builder.Default
