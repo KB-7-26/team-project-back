@@ -30,6 +30,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.times;
 
 @ExtendWith(MockitoExtension.class)
 class BoardPostServiceTest {
@@ -64,7 +65,6 @@ class BoardPostServiceTest {
                 .title("일반 게시글")
                 .content("내용")
                 .isAnonymous(false)
-                .viewCount(0)
                 .build();
 
         Pageable pageable = PageRequest.of(0, 10, Sort.by("createdAt").descending());
@@ -90,7 +90,6 @@ class BoardPostServiceTest {
                 .title("익명 게시글")
                 .content("내용")
                 .isAnonymous(true)
-                .viewCount(0)
                 .build();
 
         Pageable pageable = PageRequest.of(0, 10, Sort.by("createdAt").descending());
@@ -121,7 +120,7 @@ class BoardPostServiceTest {
     // ── getPostDetail ─────────────────────────────────────────
 
     @Test
-    @DisplayName("게시글 상세 조회 - 정상 조회, 조회수 증가")
+    @DisplayName("게시글 상세 조회 - 정상 조회, incrementViewCount 호출 확인")
     void getPostDetail_success_incrementsViewCount() {
         // given
         User author = mock(User.class);
@@ -133,7 +132,6 @@ class BoardPostServiceTest {
                 .title("상세 제목")
                 .content("상세 내용")
                 .isAnonymous(false)
-                .viewCount(5)
                 .build();
 
         given(boardPostRepository.findById(1L)).willReturn(Optional.of(post));
@@ -145,7 +143,7 @@ class BoardPostServiceTest {
         assertThat(response.getTitle()).isEqualTo("상세 제목");
         assertThat(response.getContent()).isEqualTo("상세 내용");
         assertThat(response.getNickname()).isEqualTo("홍길동");
-        assertThat(response.getViewCount()).isEqualTo(6);
+        verify(boardPostRepository, times(1)).incrementViewCount(1L);
     }
 
     @Test
@@ -160,7 +158,6 @@ class BoardPostServiceTest {
                 .title("익명 게시글")
                 .content("내용")
                 .isAnonymous(true)
-                .viewCount(0)
                 .build();
 
         given(boardPostRepository.findById(1L)).willReturn(Optional.of(post));
@@ -185,7 +182,6 @@ class BoardPostServiceTest {
                 .title("제목")
                 .content("내용")
                 .isAnonymous(false)
-                .viewCount(0)
                 .build();
 
         given(boardPostRepository.findById(1L)).willReturn(Optional.of(post));
@@ -210,7 +206,6 @@ class BoardPostServiceTest {
                 .title("제목")
                 .content("내용")
                 .isAnonymous(false)
-                .viewCount(0)
                 .build();
 
         given(boardPostRepository.findById(1L)).willReturn(Optional.of(post));
@@ -234,7 +229,6 @@ class BoardPostServiceTest {
                 .title("제목")
                 .content("내용")
                 .isAnonymous(false)
-                .viewCount(0)
                 .build();
 
         given(boardPostRepository.findById(1L)).willReturn(Optional.of(post));
@@ -323,7 +317,6 @@ class BoardPostServiceTest {
                 .title("기존 제목")
                 .content("기존 내용")
                 .isAnonymous(false)
-                .viewCount(0)
                 .build();
 
         BoardPostUpdateRequest request = new BoardPostUpdateRequest("수정 제목", "수정 내용", true);
@@ -351,7 +344,6 @@ class BoardPostServiceTest {
                 .title("제목")
                 .content("내용")
                 .isAnonymous(false)
-                .viewCount(0)
                 .build();
 
         BoardPostUpdateRequest request = new BoardPostUpdateRequest("수정 제목", "수정 내용", false);
@@ -377,7 +369,6 @@ class BoardPostServiceTest {
                 .title("제목")
                 .content("내용")
                 .isAnonymous(false)
-                .viewCount(0)
                 .build();
 
         given(boardPostRepository.findById(1L)).willReturn(Optional.of(post));

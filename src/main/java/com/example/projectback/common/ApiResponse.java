@@ -1,15 +1,16 @@
 package com.example.projectback.common;
 
-import lombok.AllArgsConstructor;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 @Getter
-@AllArgsConstructor
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class ApiResponse<T> {
 
-    private boolean success;
-    private T data;
-    private String message;
+    private final boolean success;
+    private final T data;
+    private final String message;
 
     public static <T> ApiResponse<T> success(T data, String message) {
         return new ApiResponse<>(true, data, message);

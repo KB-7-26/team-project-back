@@ -33,9 +33,9 @@ public class BoardPostService {
 
     @Transactional
     public BoardPostDetailResponse getPostDetail(Long postId, Long currentUserId) {
-        BoardPost post = boardPostRepository.findById(postId)
-                .orElseThrow(() -> new NoSuchElementException("게시글을 찾을 수 없습니다."));
-        post.incrementViewCount();
+        getPostOrThrow(postId);
+        boardPostRepository.incrementViewCount(postId);
+        BoardPost post = getPostOrThrow(postId);
         return new BoardPostDetailResponse(post, currentUserId);
     }
 
@@ -48,8 +48,7 @@ public class BoardPostService {
                 .author(author)
                 .title(request.getTitle())
                 .content(request.getContent())
-                .isAnonymous(request.getIsAnonymous() != null ? request.getIsAnonymous() : false)
-                .viewCount(0)
+                .isAnonymous(request.getIsAnonymous())
                 .build();
 
         boardPostRepository.save(post);
