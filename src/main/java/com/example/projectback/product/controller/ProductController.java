@@ -2,6 +2,7 @@ package com.example.projectback.product.controller;
 
 import com.example.projectback.product.dto.ProductCreateRequest;
 import com.example.projectback.product.dto.ProductCreateResponse;
+import com.example.projectback.product.dto.ProductImageUploadResponse;
 import com.example.projectback.product.dto.ProductListResponse;
 import com.example.projectback.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +12,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/products")
@@ -40,5 +44,16 @@ public class ProductController {
     ){
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         return ResponseEntity.ok(productService.getProducts(categoryId, saleStatus, pageable));
+    }
+
+    @PostMapping("/{id}/images")
+    public ResponseEntity<List<ProductImageUploadResponse>> uploadImages(@PathVariable Long id, @RequestParam("images") List<MultipartFile> files){
+        return ResponseEntity.ok(productService.uploadImages(id,files));
+    }
+
+    @DeleteMapping("/{id}/images/{imageId}")
+    public ResponseEntity<Void> deleteImage(@PathVariable Long id, @PathVariable Long imageId){
+        productService.deleteImage(id, imageId);
+        return ResponseEntity.noContent().build();
     }
 }

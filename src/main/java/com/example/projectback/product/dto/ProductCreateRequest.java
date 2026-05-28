@@ -17,5 +17,4 @@ public class ProductCreateRequest {
     private Boolean isFree;
     private String productCondition;
     private String location;
-    private List<String> imageUrls;
 }
