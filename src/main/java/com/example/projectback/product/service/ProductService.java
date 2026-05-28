@@ -4,8 +4,10 @@ import com.example.projectback.entity.Category;
 import com.example.projectback.entity.Product;
 import com.example.projectback.entity.ProductImage;
 import com.example.projectback.entity.User;
+import com.example.projectback.image.service.ImageStorageService;
 import com.example.projectback.product.dto.ProductCreateRequest;
 import com.example.projectback.product.dto.ProductCreateResponse;
+import com.example.projectback.product.dto.ProductImageUploadResponse;
 import com.example.projectback.product.dto.ProductListResponse;
 import com.example.projectback.product.repository.CategoryRepository;
 import com.example.projectback.product.repository.ProductImageRepository;
@@ -17,6 +19,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +31,7 @@ public class ProductService {
     private final ProductImageRepository productImageRepository;
     private final CategoryRepository categoryRepository;
     private final CurrentUserProvider currentUserProvider;
+    private final ImageStorageService imageStorageService;
 
     @Transactional
     public ProductCreateResponse createProduct(ProductCreateRequest request) {
@@ -46,14 +53,6 @@ public class ProductService {
 
         productRepository.save(product);
 
-        for (String imageUrl : request.getImageUrls()) {
-            ProductImage image = ProductImage.builder()
-                    .product(product)
-                    .imageUrl(imageUrl)
-                    .build();
-            productImageRepository.save(image);
-        }
-
         return new ProductCreateResponse(
                 product.getId(),
                 product.getTitle(),
@@ -69,6 +68,34 @@ public class ProductService {
                                                  String saleStatus, Pageable pageable) {
         return productRepository.findProductList(categoryId, saleStatus, pageable);
     }
+
+    // 이미지 파일들을 받아서 저장하고 DB에 기록
+    @Transactional
+    public List<ProductImageUploadResponse> uploadImages(Long productId, List<MultipartFile> files){
+        Product product = productRepository.findById(productId).orElseThrow(() -> new EntityNotFoundException("상품을 찾을 수 없습니다."));
+        int currentCount = productImageRepository.countByProductId(productId);
+        List<ProductImageUploadResponse> responses = new ArrayList<>();
+
+        for(int i = 0; i < files.size(); i++){
+            String imageUrl = imageStorageService.store(files.get(i));
+            ProductImage image = ProductImage.builder().product(product).imageUrl(imageUrl).sortOrder(currentCount + i).build();
+            ProductImage saved = productImageRepository.save(image);
+            responses.add(new ProductImageUploadResponse(saved.getId(), saved.getImageUrl(), saved.getSortOrder()));
+        }
+        return responses;
+    }
+
+    // 이미지 ID 받아서 파일이랑 DB 둘 다 삭제
+    @Transactional
+    public void deleteImage(Long productId, Long imageId){
+        ProductImage image = productImageRepository.findByIdAndProductId(imageId,productId)
+                .orElseThrow(() -> new EntityNotFoundException("이미지를 찾을 수 없습니다."));
+
+        imageStorageService.delete(image.getImageUrl());
+        productImageRepository.delete(image);
+    }
+
+
 
 }
 
