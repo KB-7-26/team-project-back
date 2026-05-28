@@ -63,3 +63,6 @@ replay_pid*
 
 # application.yaml
 src/main/resources/application.yaml
+
+# Claude Code
+.claude/
