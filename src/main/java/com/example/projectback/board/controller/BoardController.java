@@ -1,10 +1,14 @@
 package com.example.projectback.board.controller;
 
+import com.example.projectback.board.dto.BoardCommentCreateRequest;
+import com.example.projectback.board.dto.BoardCommentResponse;
+import com.example.projectback.board.dto.BoardCommentUpdateRequest;
 import com.example.projectback.board.dto.BoardPostCreateRequest;
 import com.example.projectback.board.dto.BoardPostCreateResponse;
 import com.example.projectback.board.dto.BoardPostDetailResponse;
 import com.example.projectback.board.dto.BoardPostListItemResponse;
 import com.example.projectback.board.dto.BoardPostUpdateRequest;
+import com.example.projectback.board.service.BoardCommentService;
 import com.example.projectback.board.service.BoardPostService;
 import com.example.projectback.common.ApiResponse;
 import com.example.projectback.security.CurrentUserProvider;
@@ -16,12 +20,15 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/posts")
 @RequiredArgsConstructor
 public class BoardController {
 
     private final BoardPostService boardPostService;
+    private final BoardCommentService boardCommentService;
     private final CurrentUserProvider currentUserProvider;
 
     @GetMapping
@@ -70,5 +77,42 @@ public class BoardController {
         Long userId = currentUserProvider.getCurrentUserId();
         boardPostService.deletePost(id, userId);
         return ResponseEntity.ok(ApiResponse.success("게시글 삭제 성공"));
+    }
+
+    @GetMapping("/{id}/comments")
+    public ResponseEntity<ApiResponse<List<BoardCommentResponse>>> getComments(@PathVariable Long id) {
+        List<BoardCommentResponse> response = boardCommentService.getComments(id);
+        return ResponseEntity.ok(ApiResponse.success(response, "댓글 목록 조회 성공"));
+    }
+
+    @PostMapping("/{id}/comments")
+    public ResponseEntity<ApiResponse<BoardCommentResponse>> createComment(
+            @PathVariable Long id,
+            @RequestBody BoardCommentCreateRequest request) {
+
+        Long userId = currentUserProvider.getCurrentUserId();
+        BoardCommentResponse response = boardCommentService.createComment(id, userId, request);
+        return ResponseEntity.ok(ApiResponse.success(response, "댓글 등록 성공"));
+    }
+
+    @PutMapping("/{id}/comments/{commentId}")
+    public ResponseEntity<ApiResponse<BoardCommentResponse>> updateComment(
+            @PathVariable Long id,
+            @PathVariable Long commentId,
+            @RequestBody BoardCommentUpdateRequest request) {
+
+        Long userId = currentUserProvider.getCurrentUserId();
+        BoardCommentResponse response = boardCommentService.updateComment(id, commentId, userId, request);
+        return ResponseEntity.ok(ApiResponse.success(response, "댓글 수정 성공"));
+    }
+
+    @DeleteMapping("/{id}/comments/{commentId}")
+    public ResponseEntity<ApiResponse<Void>> deleteComment(
+            @PathVariable Long id,
+            @PathVariable Long commentId) {
+
+        Long userId = currentUserProvider.getCurrentUserId();
+        boardCommentService.deleteComment(id, commentId, userId);
+        return ResponseEntity.ok(ApiResponse.success("댓글 삭제 성공"));
     }
 }
