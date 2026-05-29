@@ -91,7 +91,7 @@ spring:
   datasource:
     url: jdbc:mysql://127.0.0.1:3306/kb_project
     username: root
-    password: 본인비밀번호
+    password: ''             # MySQL 비밀번호 입력
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
@@ -106,6 +106,11 @@ server:
   servlet:
     session:
       persistent: false
+
+firebase:
+  service-account-path: ${FIREBASE_SERVICE_ACCOUNT_PATH:}
+  service-account-json: ${FIREBASE_SERVICE_ACCOUNT_JSON:}
+
 ```
 
 ### 2. MySQL DB 생성
