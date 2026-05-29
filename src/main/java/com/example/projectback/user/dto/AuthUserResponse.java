@@ -8,30 +8,30 @@ import java.time.LocalDateTime;
 
 @Getter
 @AllArgsConstructor
-public class SignupResponse {
+public class AuthUserResponse {
 
     private Long id;
-    private String loginId;
+    private String email;
     private String name;
     private String nickname;
-    private String email;
     private String phoneNumber;
     private String gender;
     private String cohort;
+    private String profileImageUrl;
     private Integer trustScore;
     private Boolean isVerified;
     private LocalDateTime createdAt;
 
-    public static SignupResponse from(User user) {
-        return new SignupResponse(
+    public static AuthUserResponse from(User user) {
+        return new AuthUserResponse(
                 user.getId(),
-                user.getLoginId(),
+                user.getEmail(),
                 user.getName(),
                 user.getNickname(),
-                user.getEmail(),
                 user.getPhoneNumber(),
                 user.getGender(),
                 user.getCohort(),
+                user.getProfileImageUrl(),
                 user.getTrustScore(),
                 user.getIsVerified(),
                 user.getCreatedAt()
