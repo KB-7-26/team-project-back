@@ -48,7 +48,6 @@ public class BoardPostService {
                 .author(author)
                 .title(request.getTitle())
                 .content(request.getContent())
-                .isAnonymous(request.getIsAnonymous())
                 .build();
 
         boardPostRepository.save(post);
@@ -61,7 +60,7 @@ public class BoardPostService {
         BoardPost post = getPostOrThrow(postId);
         validateAuthor(post, userId);
 
-        post.update(request.getTitle(), request.getContent(), request.getIsAnonymous());
+        post.update(request.getTitle(), request.getContent());
         return new BoardPostDetailResponse(post, userId);
     }
 
