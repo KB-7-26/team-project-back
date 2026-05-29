@@ -81,7 +81,12 @@ public class BoardController {
 
     @GetMapping("/{id}/comments")
     public ResponseEntity<ApiResponse<List<BoardCommentResponse>>> getComments(@PathVariable Long id) {
-        List<BoardCommentResponse> response = boardCommentService.getComments(id);
+        Long currentUserId = null;
+        try {
+            currentUserId = currentUserProvider.getCurrentUserId();
+        } catch (Exception ignored) {
+        }
+        List<BoardCommentResponse> response = boardCommentService.getComments(id, currentUserId);
         return ResponseEntity.ok(ApiResponse.success(response, "댓글 목록 조회 성공"));
     }
 

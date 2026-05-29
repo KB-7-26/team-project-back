@@ -12,13 +12,15 @@ public class BoardCommentResponse {
     private final String displayName;
     private final String content;
     private final LocalDateTime createdAt;
+    private final boolean isOwner;
     private final List<BoardCommentResponse> replies;
 
-    public BoardCommentResponse(BoardComment comment, String displayName, List<BoardCommentResponse> replies) {
+    public BoardCommentResponse(BoardComment comment, String displayName, Long currentUserId, List<BoardCommentResponse> replies) {
         this.id = comment.getId();
         this.displayName = displayName;
         this.content = comment.getContent();
         this.createdAt = comment.getCreatedAt();
+        this.isOwner = currentUserId != null && currentUserId.equals(comment.getAuthor().getId());
         this.replies = replies;
     }
 }
