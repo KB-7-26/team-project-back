@@ -29,7 +29,7 @@ public class BoardCommentService {
     private final UserRepository userRepository;
 
     @Transactional(readOnly = true)
-    public List<BoardCommentResponse> getComments(Long postId) {
+    public List<BoardCommentResponse> getComments(Long postId, Long currentUserId) {
         BoardPost post = getPostOrThrow(postId);
         List<BoardComment> allComments = boardCommentRepository.findByPostIdOrderByCreatedAtAsc(postId);
         Map<Long, String> anonMap = buildAnonMap(allComments, post.getAuthor().getId());
@@ -40,7 +40,7 @@ public class BoardCommentService {
 
         return allComments.stream()
                 .filter(c -> c.getParentComment() == null)
-                .map(c -> toResponse(c, anonMap, repliesByParentId))
+                .map(c -> toResponse(c, anonMap, currentUserId, repliesByParentId))
                 .collect(Collectors.toList());
     }
 
@@ -68,7 +68,7 @@ public class BoardCommentService {
         List<BoardComment> allComments = boardCommentRepository.findByPostIdOrderByCreatedAtAsc(postId);
         Map<Long, String> anonMap = buildAnonMap(allComments, post.getAuthor().getId());
 
-        return new BoardCommentResponse(comment, anonMap.get(userId), List.of());
+        return new BoardCommentResponse(comment, anonMap.get(userId), userId, List.of());
     }
 
     @Transactional
@@ -82,7 +82,7 @@ public class BoardCommentService {
         List<BoardComment> allComments = boardCommentRepository.findByPostIdOrderByCreatedAtAsc(postId);
         Map<Long, String> anonMap = buildAnonMap(allComments, post.getAuthor().getId());
 
-        return new BoardCommentResponse(comment, anonMap.get(userId), List.of());
+        return new BoardCommentResponse(comment, anonMap.get(userId), userId, List.of());
     }
 
     @Transactional
@@ -110,14 +110,14 @@ public class BoardCommentService {
     }
 
     private BoardCommentResponse toResponse(BoardComment comment, Map<Long, String> anonMap,
-                                             Map<Long, List<BoardComment>> repliesByParentId) {
+                                             Long currentUserId, Map<Long, List<BoardComment>> repliesByParentId) {
         List<BoardCommentResponse> replies = repliesByParentId
                 .getOrDefault(comment.getId(), List.of())
                 .stream()
-                .map(reply -> new BoardCommentResponse(reply, anonMap.get(reply.getAuthor().getId()), List.of()))
+                .map(reply -> new BoardCommentResponse(reply, anonMap.get(reply.getAuthor().getId()), currentUserId, List.of()))
                 .collect(Collectors.toList());
 
-        return new BoardCommentResponse(comment, anonMap.get(comment.getAuthor().getId()), replies);
+        return new BoardCommentResponse(comment, anonMap.get(comment.getAuthor().getId()), currentUserId, replies);
     }
 
     private BoardPost getPostOrThrow(Long postId) {
