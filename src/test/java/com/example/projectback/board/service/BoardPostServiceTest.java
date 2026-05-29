@@ -19,7 +19,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.*;
 import org.springframework.security.access.AccessDeniedException;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -54,17 +53,15 @@ class BoardPostServiceTest {
     // ── getPosts ──────────────────────────────────────────────
 
     @Test
-    @DisplayName("게시글 목록 조회 - 일반 게시글은 닉네임 반환")
-    void getPosts_nonAnonymous_returnsNickname() {
+    @DisplayName("게시글 목록 조회 - displayName은 항상 '익명' 반환")
+    void getPosts_alwaysReturnsAnonymousDisplayName() {
         // given
         User author = mock(User.class);
-        given(author.getNickname()).willReturn("홍길동");
 
         BoardPost post = BoardPost.builder()
                 .author(author)
-                .title("일반 게시글")
+                .title("게시글")
                 .content("내용")
-                .isAnonymous(false)
                 .build();
 
         Pageable pageable = PageRequest.of(0, 10, Sort.by("createdAt").descending());
@@ -75,31 +72,8 @@ class BoardPostServiceTest {
 
         // then
         assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().get(0).getNickname()).isEqualTo("홍길동");
-        assertThat(result.getContent().get(0).getTitle()).isEqualTo("일반 게시글");
-    }
-
-    @Test
-    @DisplayName("게시글 목록 조회 - 익명 게시글은 닉네임을 '익명'으로 반환")
-    void getPosts_anonymous_returnsAnonymous() {
-        // given
-        User author = mock(User.class);
-
-        BoardPost post = BoardPost.builder()
-                .author(author)
-                .title("익명 게시글")
-                .content("내용")
-                .isAnonymous(true)
-                .build();
-
-        Pageable pageable = PageRequest.of(0, 10, Sort.by("createdAt").descending());
-        given(boardPostRepository.findAll(pageable)).willReturn(new PageImpl<>(List.of(post)));
-
-        // when
-        Page<BoardPostListItemResponse> result = boardPostService.getPosts(pageable);
-
-        // then
-        assertThat(result.getContent().get(0).getNickname()).isEqualTo("익명");
+        assertThat(result.getContent().get(0).getDisplayName()).isEqualTo("익명");
+        assertThat(result.getContent().get(0).getTitle()).isEqualTo("게시글");
     }
 
     @Test
@@ -120,18 +94,16 @@ class BoardPostServiceTest {
     // ── getPostDetail ─────────────────────────────────────────
 
     @Test
-    @DisplayName("게시글 상세 조회 - 정상 조회, incrementViewCount 호출 확인")
+    @DisplayName("게시글 상세 조회 - displayName은 항상 '익명' 반환, incrementViewCount 호출 확인")
     void getPostDetail_success_incrementsViewCount() {
         // given
         User author = mock(User.class);
         given(author.getId()).willReturn(1L);
-        given(author.getNickname()).willReturn("홍길동");
 
         BoardPost post = BoardPost.builder()
                 .author(author)
                 .title("상세 제목")
                 .content("상세 내용")
-                .isAnonymous(false)
                 .build();
 
         given(boardPostRepository.findById(1L)).willReturn(Optional.of(post));
@@ -142,31 +114,8 @@ class BoardPostServiceTest {
         // then
         assertThat(response.getTitle()).isEqualTo("상세 제목");
         assertThat(response.getContent()).isEqualTo("상세 내용");
-        assertThat(response.getNickname()).isEqualTo("홍길동");
+        assertThat(response.getDisplayName()).isEqualTo("익명");
         verify(boardPostRepository, times(1)).incrementViewCount(1L);
-    }
-
-    @Test
-    @DisplayName("게시글 상세 조회 - 익명 게시글은 닉네임을 '익명'으로 반환")
-    void getPostDetail_anonymous_returnsAnonymous() {
-        // given
-        User author = mock(User.class);
-        given(author.getId()).willReturn(1L);
-
-        BoardPost post = BoardPost.builder()
-                .author(author)
-                .title("익명 게시글")
-                .content("내용")
-                .isAnonymous(true)
-                .build();
-
-        given(boardPostRepository.findById(1L)).willReturn(Optional.of(post));
-
-        // when
-        BoardPostDetailResponse response = boardPostService.getPostDetail(1L, 2L);
-
-        // then
-        assertThat(response.getNickname()).isEqualTo("익명");
     }
 
     @Test
@@ -175,13 +124,11 @@ class BoardPostServiceTest {
         // given
         User author = mock(User.class);
         given(author.getId()).willReturn(1L);
-        given(author.getNickname()).willReturn("홍길동");
 
         BoardPost post = BoardPost.builder()
                 .author(author)
                 .title("제목")
                 .content("내용")
-                .isAnonymous(false)
                 .build();
 
         given(boardPostRepository.findById(1L)).willReturn(Optional.of(post));
@@ -199,13 +146,11 @@ class BoardPostServiceTest {
         // given
         User author = mock(User.class);
         given(author.getId()).willReturn(1L);
-        given(author.getNickname()).willReturn("홍길동");
 
         BoardPost post = BoardPost.builder()
                 .author(author)
                 .title("제목")
                 .content("내용")
-                .isAnonymous(false)
                 .build();
 
         given(boardPostRepository.findById(1L)).willReturn(Optional.of(post));
@@ -222,13 +167,11 @@ class BoardPostServiceTest {
     void getPostDetail_notLoggedIn_isOwnerFalse() {
         // given
         User author = mock(User.class);
-        given(author.getNickname()).willReturn("홍길동");
 
         BoardPost post = BoardPost.builder()
                 .author(author)
                 .title("제목")
                 .content("내용")
-                .isAnonymous(false)
                 .build();
 
         given(boardPostRepository.findById(1L)).willReturn(Optional.of(post));
@@ -258,7 +201,7 @@ class BoardPostServiceTest {
     @DisplayName("게시글 등록 성공")
     void createPost_success() {
         // given
-        BoardPostCreateRequest request = new BoardPostCreateRequest("테스트 제목", "테스트 내용", false);
+        BoardPostCreateRequest request = new BoardPostCreateRequest("테스트 제목", "테스트 내용");
 
         given(userRepository.findById(1L)).willReturn(Optional.of(mockUser));
         given(boardPostRepository.save(any(BoardPost.class))).willAnswer(invocation -> invocation.getArgument(0));
@@ -275,32 +218,13 @@ class BoardPostServiceTest {
     @DisplayName("존재하지 않는 userId로 게시글 등록 시 예외 발생")
     void createPost_userNotFound() {
         // given
-        BoardPostCreateRequest request = new BoardPostCreateRequest("제목", "내용", false);
+        BoardPostCreateRequest request = new BoardPostCreateRequest("제목", "내용");
         given(userRepository.findById(999L)).willReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> boardPostService.createPost(999L, request))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("존재하지 않는 사용자입니다.");
-    }
-
-    @Test
-    @DisplayName("isAnonymous가 null이면 false로 처리")
-    void createPost_isAnonymousNull_defaultFalse() {
-        // given
-        BoardPostCreateRequest request = new BoardPostCreateRequest("제목", "내용", null);
-        given(userRepository.findById(1L)).willReturn(Optional.of(mockUser));
-        given(boardPostRepository.save(any(BoardPost.class))).willAnswer(invocation -> {
-            BoardPost post = invocation.getArgument(0);
-            assertThat(post.getIsAnonymous()).isFalse();
-            return post;
-        });
-
-        // when
-        boardPostService.createPost(1L, request);
-
-        // then
-        verify(boardPostRepository).save(any(BoardPost.class));
     }
 
     // ── updatePost ───────────────────────────────────────────
@@ -316,10 +240,9 @@ class BoardPostServiceTest {
                 .author(author)
                 .title("기존 제목")
                 .content("기존 내용")
-                .isAnonymous(false)
                 .build();
 
-        BoardPostUpdateRequest request = new BoardPostUpdateRequest("수정 제목", "수정 내용", true);
+        BoardPostUpdateRequest request = new BoardPostUpdateRequest("수정 제목", "수정 내용");
         given(boardPostRepository.findById(1L)).willReturn(Optional.of(post));
 
         // when
@@ -328,7 +251,6 @@ class BoardPostServiceTest {
         // then
         assertThat(response.getTitle()).isEqualTo("수정 제목");
         assertThat(response.getContent()).isEqualTo("수정 내용");
-        assertThat(response.getIsAnonymous()).isTrue();
         assertThat(response.isOwner()).isTrue();
     }
 
@@ -343,10 +265,9 @@ class BoardPostServiceTest {
                 .author(author)
                 .title("제목")
                 .content("내용")
-                .isAnonymous(false)
                 .build();
 
-        BoardPostUpdateRequest request = new BoardPostUpdateRequest("수정 제목", "수정 내용", false);
+        BoardPostUpdateRequest request = new BoardPostUpdateRequest("수정 제목", "수정 내용");
         given(boardPostRepository.findById(1L)).willReturn(Optional.of(post));
 
         // when & then
@@ -368,7 +289,6 @@ class BoardPostServiceTest {
                 .author(author)
                 .title("제목")
                 .content("내용")
-                .isAnonymous(false)
                 .build();
 
         given(boardPostRepository.findById(1L)).willReturn(Optional.of(post));

@@ -10,5 +10,4 @@ import lombok.NoArgsConstructor;
 public class BoardPostUpdateRequest {
     private String title;
     private String content;
-    private Boolean isAnonymous;
 }

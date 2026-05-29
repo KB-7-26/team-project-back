@@ -28,9 +28,6 @@ public class BoardPost {
     private String content;
 
     @Column(nullable = false)
-    private Boolean isAnonymous;
-
-    @Column(nullable = false)
     private Integer viewCount;
 
     @Column(nullable = false, updatable = false)
@@ -39,18 +36,16 @@ public class BoardPost {
     private LocalDateTime updatedAt;
 
     @Builder
-    private BoardPost(User author, String title, String content, Boolean isAnonymous) {
+    private BoardPost(User author, String title, String content) {
         this.author = author;
         this.title = title;
         this.content = content;
-        this.isAnonymous = isAnonymous != null ? isAnonymous : false;
         this.viewCount = 0;
     }
 
-    public void update(String title, String content, Boolean isAnonymous) {
+    public void update(String title, String content) {
         this.title = title;
         this.content = content;
-        this.isAnonymous = isAnonymous != null ? isAnonymous : false;
     }
 
     @PrePersist

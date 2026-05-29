@@ -10,8 +10,7 @@ public class BoardPostDetailResponse {
     private final Long id;
     private final String title;
     private final String content;
-    private final String nickname;
-    private final Boolean isAnonymous;
+    private final String displayName;
     private final Integer viewCount;
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
@@ -21,8 +20,7 @@ public class BoardPostDetailResponse {
         this.id = post.getId();
         this.title = post.getTitle();
         this.content = post.getContent();
-        this.nickname = post.getIsAnonymous() ? "익명" : post.getAuthor().getNickname();
-        this.isAnonymous = post.getIsAnonymous();
+        this.displayName = "익명";
         this.viewCount = post.getViewCount();
         this.createdAt = post.getCreatedAt();
         this.updatedAt = post.getUpdatedAt();
