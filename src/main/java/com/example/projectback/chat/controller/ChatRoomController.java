@@ -2,7 +2,6 @@ package com.example.projectback.chat.controller;
 
 import com.example.projectback.chat.dto.ChatRoomCreateRequest;
 import com.example.projectback.chat.dto.ChatRoomCreateResponse;
-import com.example.projectback.chat.dto.ChatRoomListResponse;
 import com.example.projectback.chat.service.ChatRoomService;
 import com.example.projectback.common.ApiResponse;
 import lombok.RequiredArgsConstructor;
