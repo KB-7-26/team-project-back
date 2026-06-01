@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -46,8 +47,8 @@ public class ProductController {
         return ResponseEntity.ok(productService.getProducts(categoryId, saleStatus, pageable));
     }
 
-    @PostMapping("/{id}/images")
-    public ResponseEntity<List<ProductImageUploadResponse>> uploadImages(@PathVariable Long id, @RequestParam("images") List<MultipartFile> files){
+    @PostMapping(value = "/{id}/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<List<ProductImageUploadResponse>> uploadImages(@PathVariable Long id, @RequestPart("images") List<MultipartFile> files){
         return ResponseEntity.ok(productService.uploadImages(id,files));
     }
 
