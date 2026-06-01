@@ -7,9 +7,11 @@ import com.example.projectback.entity.User;
 import com.example.projectback.image.service.ImageStorageService;
 import com.example.projectback.product.dto.ProductCreateRequest;
 import com.example.projectback.product.dto.ProductCreateResponse;
+import com.example.projectback.product.dto.ProductDetailResponse;
 import com.example.projectback.product.dto.ProductImageUploadResponse;
 import com.example.projectback.product.dto.ProductListResponse;
 import com.example.projectback.product.repository.CategoryRepository;
+import com.example.projectback.product.repository.ProductFavoriteRepository;
 import com.example.projectback.product.repository.ProductImageRepository;
 import com.example.projectback.product.repository.ProductRepository;
 import com.example.projectback.security.CurrentUserProvider;
@@ -29,6 +31,7 @@ import java.util.List;
 public class ProductService {
     private final ProductRepository productRepository;
     private final ProductImageRepository productImageRepository;
+    private final ProductFavoriteRepository productFavoriteRepository;
     private final CategoryRepository categoryRepository;
     private final CurrentUserProvider currentUserProvider;
     private final ImageStorageService imageStorageService;
@@ -59,6 +62,40 @@ public class ProductService {
                 product.getPrice(),
                 product.getIsFree(),
                 product.getSaleStatus(),
+                product.getCreatedAt()
+        );
+    }
+
+    @Transactional
+    public ProductDetailResponse getProduct(Long id) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("상품을 찾을 수 없습니다."));
+
+        product.incrementViewCount();
+
+        List<String> imageUrls = productImageRepository.findByProductIdOrderBySortOrderAsc(id)
+                .stream()
+                .map(ProductImage::getImageUrl)
+                .toList();
+
+        long favoriteCount = productFavoriteRepository.countByProductId(id);
+
+        return new ProductDetailResponse(
+                product.getId(),
+                product.getTitle(),
+                product.getDescription(),
+                product.getPrice(),
+                product.getIsFree(),
+                product.getProductCondition(),
+                product.getSaleStatus(),
+                product.getLocation(),
+                product.getViewCount(),
+                product.getCategory().getName(),
+                product.getSeller().getId(),
+                product.getSeller().getNickname(),
+                product.getSeller().getProfileImageUrl(),
+                imageUrls,
+                favoriteCount,
                 product.getCreatedAt()
         );
     }
