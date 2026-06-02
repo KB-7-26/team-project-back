@@ -54,6 +54,9 @@ public class BoardCommentService {
         if (request.getParentCommentId() != null) {
             parentComment = boardCommentRepository.findById(request.getParentCommentId())
                     .orElseThrow(() -> new NoSuchElementException("댓글을 찾을 수 없습니다."));
+            if (!parentComment.getPost().getId().equals(postId)) {
+                throw new IllegalArgumentException("부모 댓글이 해당 게시글에 속하지 않습니다.");
+            }
         }
 
         BoardComment comment = BoardComment.builder()
@@ -75,6 +78,7 @@ public class BoardCommentService {
     public BoardCommentResponse updateComment(Long postId, Long commentId, Long userId, BoardCommentUpdateRequest request) {
         BoardPost post = getPostOrThrow(postId);
         BoardComment comment = getCommentOrThrow(commentId);
+        validateCommentBelongsToPost(comment, postId);
         validateCommentAuthor(comment, userId);
 
         comment.update(request.getContent());
@@ -89,6 +93,7 @@ public class BoardCommentService {
     public void deleteComment(Long postId, Long commentId, Long userId) {
         getPostOrThrow(postId);
         BoardComment comment = getCommentOrThrow(commentId);
+        validateCommentBelongsToPost(comment, postId);
         validateCommentAuthor(comment, userId);
 
         boardCommentRepository.delete(comment);
@@ -128,6 +133,12 @@ public class BoardCommentService {
     private BoardComment getCommentOrThrow(Long commentId) {
         return boardCommentRepository.findById(commentId)
                 .orElseThrow(() -> new NoSuchElementException("댓글을 찾을 수 없습니다."));
+    }
+
+    private void validateCommentBelongsToPost(BoardComment comment, Long postId) {
+        if (!comment.getPost().getId().equals(postId)) {
+            throw new IllegalArgumentException("해당 게시글의 댓글이 아닙니다.");
+        }
     }
 
     private void validateCommentAuthor(BoardComment comment, Long userId) {

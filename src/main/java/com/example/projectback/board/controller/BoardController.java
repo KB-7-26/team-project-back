@@ -18,6 +18,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import jakarta.validation.Valid;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -46,7 +48,7 @@ public class BoardController {
         Long currentUserId = null;
         try {
             currentUserId = currentUserProvider.getCurrentUserId();
-        } catch (Exception ignored) {
+        } catch (AuthenticationCredentialsNotFoundException ignored) {
         }
 
         BoardPostDetailResponse response = boardPostService.getPostDetail(id, currentUserId);
@@ -84,7 +86,7 @@ public class BoardController {
         Long currentUserId = null;
         try {
             currentUserId = currentUserProvider.getCurrentUserId();
-        } catch (Exception ignored) {
+        } catch (AuthenticationCredentialsNotFoundException ignored) {
         }
         List<BoardCommentResponse> response = boardCommentService.getComments(id, currentUserId);
         return ResponseEntity.ok(ApiResponse.success(response, "댓글 목록 조회 성공"));
@@ -93,7 +95,7 @@ public class BoardController {
     @PostMapping("/{id}/comments")
     public ResponseEntity<ApiResponse<BoardCommentResponse>> createComment(
             @PathVariable Long id,
-            @RequestBody BoardCommentCreateRequest request) {
+            @Valid @RequestBody BoardCommentCreateRequest request) {
 
         Long userId = currentUserProvider.getCurrentUserId();
         BoardCommentResponse response = boardCommentService.createComment(id, userId, request);
@@ -104,7 +106,7 @@ public class BoardController {
     public ResponseEntity<ApiResponse<BoardCommentResponse>> updateComment(
             @PathVariable Long id,
             @PathVariable Long commentId,
-            @RequestBody BoardCommentUpdateRequest request) {
+            @Valid @RequestBody BoardCommentUpdateRequest request) {
 
         Long userId = currentUserProvider.getCurrentUserId();
         BoardCommentResponse response = boardCommentService.updateComment(id, commentId, userId, request);
