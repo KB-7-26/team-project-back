@@ -5,11 +5,7 @@ import com.example.projectback.entity.Product;
 import com.example.projectback.entity.ProductImage;
 import com.example.projectback.entity.User;
 import com.example.projectback.image.service.ImageStorageService;
-import com.example.projectback.product.dto.ProductCreateRequest;
-import com.example.projectback.product.dto.ProductCreateResponse;
-import com.example.projectback.product.dto.ProductDetailResponse;
-import com.example.projectback.product.dto.ProductImageUploadResponse;
-import com.example.projectback.product.dto.ProductListResponse;
+import com.example.projectback.product.dto.*;
 import com.example.projectback.product.repository.CategoryRepository;
 import com.example.projectback.product.repository.ProductFavoriteRepository;
 import com.example.projectback.product.repository.ProductImageRepository;
@@ -73,9 +69,9 @@ public class ProductService {
 
         product.incrementViewCount();
 
-        List<String> imageUrls = productImageRepository.findByProductIdOrderBySortOrderAsc(id)
+        List<ProductImageUploadResponse> images = productImageRepository.findByProductIdOrderBySortOrderAsc(id)
                 .stream()
-                .map(ProductImage::getImageUrl)
+                .map(i -> new ProductImageUploadResponse(i.getId(), i.getImageUrl(), i.getSortOrder()))
                 .toList();
 
         long favoriteCount = productFavoriteRepository.countByProductId(id);
@@ -94,7 +90,7 @@ public class ProductService {
                 product.getSeller().getId(),
                 product.getSeller().getNickname(),
                 product.getSeller().getProfileImageUrl(),
-                imageUrls,
+                images,
                 favoriteCount,
                 product.getCreatedAt()
         );
@@ -132,7 +128,33 @@ public class ProductService {
         productImageRepository.delete(image);
     }
 
+    @Transactional
+    public void updateSaleStatus(Long id, String saleStatus) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("상품을 찾을 수 없습니다."));
+        product.updateSaleStatus(saleStatus);
+    }
 
+    @Transactional
+    public void updateProduct(Long id, ProductUpdateRequest request){
+        Product product = productRepository.findById(id).orElseThrow(() ->
+                new EntityNotFoundException("상품을 찾을 수 없습니다."));
+
+        Category category = categoryRepository.findById(request.getCategoryId()).orElseThrow(() ->
+                new EntityNotFoundException("카테고리를 찾을 수 없습니다."));
+
+        product.update(
+                category,
+                request.getTitle(),
+                request.getDescription(),
+                request.getPrice(),
+                request.getIsFree(),
+                request.getProductCondition(),
+                request.getLocation(),
+                request.getSaleStatus() != null ? request.getSaleStatus() : product.getSaleStatus()
+        );
+
+    }
 
 }
 

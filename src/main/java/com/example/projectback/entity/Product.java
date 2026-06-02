@@ -71,4 +71,19 @@ public class Product {
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
+
+    public void updateSaleStatus(String saleStatus) {
+        this.saleStatus = saleStatus;
+    }
+
+    public void update(Category category, String title, String description, Integer price, Boolean isFree, String productCondition, String location, String saleStatus) {
+        this.category = category;
+        this.title = title;
+        this.description = description;
+        this.price = price;
+        this.isFree = isFree;
+        this.productCondition = productCondition;
+        this.location = location;
+        this.saleStatus = saleStatus;
+    }
 }

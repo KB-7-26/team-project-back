@@ -1,10 +1,6 @@
 package com.example.projectback.product.controller;
 
-import com.example.projectback.product.dto.ProductCreateRequest;
-import com.example.projectback.product.dto.ProductCreateResponse;
-import com.example.projectback.product.dto.ProductDetailResponse;
-import com.example.projectback.product.dto.ProductImageUploadResponse;
-import com.example.projectback.product.dto.ProductListResponse;
+import com.example.projectback.product.dto.*;
 import com.example.projectback.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -61,6 +57,18 @@ public class ProductController {
     @DeleteMapping("/{id}/images/{imageId}")
     public ResponseEntity<Void> deleteImage(@PathVariable Long id, @PathVariable Long imageId){
         productService.deleteImage(id, imageId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<Void> updateSaleStatus(@PathVariable Long id, @RequestBody java.util.Map<String, String> body) {
+        productService.updateSaleStatus(id, body.get("status"));
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Void> updateProduct(@PathVariable Long id, @RequestBody ProductUpdateRequest request){
+        productService.updateProduct(id, request);
         return ResponseEntity.noContent().build();
     }
 }

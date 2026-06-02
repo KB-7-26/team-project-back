@@ -22,7 +22,7 @@ public class ProductDetailResponse {
     private Long sellerId;
     private String sellerNickname;
     private String sellerProfileImageUrl;
-    private List<String> imageUrls;
+    private List<ProductImageUploadResponse> images;
     private Long favoriteCount;
     private LocalDateTime createdAt;
 }
