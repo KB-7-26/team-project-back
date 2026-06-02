@@ -10,6 +10,7 @@ import com.example.projectback.entity.BoardPost;
 import com.example.projectback.entity.User;
 import com.example.projectback.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +21,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class BoardCommentService {
@@ -67,6 +69,7 @@ public class BoardCommentService {
                 .build();
 
         boardCommentRepository.save(comment);
+        log.info("댓글 등록: postId={}, commentId={}, userId={}, isReply={}", postId, comment.getId(), userId, parentComment != null);
 
         List<BoardComment> allComments = boardCommentRepository.findByPostIdOrderByCreatedAtAsc(postId);
         Map<Long, String> anonMap = buildAnonMap(allComments, post.getAuthor().getId());
@@ -82,6 +85,7 @@ public class BoardCommentService {
         validateCommentAuthor(comment, userId);
 
         comment.update(request.getContent());
+        log.info("댓글 수정: postId={}, commentId={}, userId={}", postId, commentId, userId);
 
         List<BoardComment> allComments = boardCommentRepository.findByPostIdOrderByCreatedAtAsc(postId);
         Map<Long, String> anonMap = buildAnonMap(allComments, post.getAuthor().getId());
@@ -97,6 +101,7 @@ public class BoardCommentService {
         validateCommentAuthor(comment, userId);
 
         boardCommentRepository.delete(comment);
+        log.info("댓글 삭제: postId={}, commentId={}, userId={}", postId, commentId, userId);
     }
 
     private Map<Long, String> buildAnonMap(List<BoardComment> allComments, Long postAuthorId) {
@@ -137,12 +142,14 @@ public class BoardCommentService {
 
     private void validateCommentBelongsToPost(BoardComment comment, Long postId) {
         if (!comment.getPost().getId().equals(postId)) {
+            log.warn("댓글-게시글 불일치: commentId={}, requestedPostId={}", comment.getId(), postId);
             throw new IllegalArgumentException("해당 게시글의 댓글이 아닙니다.");
         }
     }
 
     private void validateCommentAuthor(BoardComment comment, Long userId) {
         if (userId == null || !userId.equals(comment.getAuthor().getId())) {
+            log.warn("댓글 수정/삭제 권한 없음: commentId={}, userId={}", comment.getId(), userId);
             throw new AccessDeniedException("댓글 수정/삭제 권한이 없습니다.");
         }
     }
