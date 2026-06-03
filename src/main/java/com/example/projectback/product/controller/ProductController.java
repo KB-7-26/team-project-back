@@ -4,9 +4,9 @@ import com.example.projectback.product.dto.*;
 import com.example.projectback.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -33,20 +33,12 @@ public class ProductController {
 
     @GetMapping
     public ResponseEntity<Page<ProductListResponse>> getProducts(
-            @RequestParam(required = false)
-            Long categoryId,
-
-            @RequestParam(required = false)
-            String saleStatus,
-
-            @RequestParam(defaultValue = "0")
-            int page,
-
-            @RequestParam(defaultValue = "10")
-            int size
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) String saleStatus,
+            @RequestParam(required = false) String keyword,
+            @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC, size = 10) Pageable pageable
     ){
-        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        return ResponseEntity.ok(productService.getProducts(categoryId, saleStatus, pageable));
+        return ResponseEntity.ok(productService.getProducts(categoryId, saleStatus, keyword, pageable));
     }
 
     @PostMapping(value = "/{id}/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
