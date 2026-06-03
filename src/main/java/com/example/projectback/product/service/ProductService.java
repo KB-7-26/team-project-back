@@ -97,9 +97,15 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
-    public Page<ProductListResponse> getProducts(Long categoryId,
-                                                 String saleStatus, Pageable pageable) {
-        return productRepository.findProductList(categoryId, saleStatus, pageable);
+    public Page<ProductListResponse> getProducts(Long categoryId, String saleStatus, String keyword, Pageable pageable) {
+        boolean isFavoriteCountSort = pageable.getSort().stream()
+                .anyMatch(order -> order.getProperty().equals("favoriteCount"));
+
+        if (isFavoriteCountSort) {
+            Pageable pageOnly = org.springframework.data.domain.PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
+            return productRepository.findProductListOrderByFavoriteCountDesc(categoryId, saleStatus, keyword, pageOnly);
+        }
+        return productRepository.findProductList(categoryId, saleStatus, keyword, pageable);
     }
 
     // 이미지 파일들을 받아서 저장하고 DB에 기록
