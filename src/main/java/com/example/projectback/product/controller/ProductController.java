@@ -36,7 +36,7 @@ public class ProductController {
             @RequestParam(required = false)
             Long categoryId,
 
-            @RequestParam(defaultValue = "available")
+            @RequestParam(required = false)
             String saleStatus,
 
             @RequestParam(defaultValue = "0")

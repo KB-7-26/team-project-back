@@ -20,12 +20,12 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             )
             FROM Product p
             WHERE (:categoryId IS NULL OR p.category.id = :categoryId)
-              AND p.saleStatus = :saleStatus
+              AND (:saleStatus IS NULL OR :saleStatus = 'all' OR p.saleStatus = :saleStatus)
             """,
             countQuery = """
             SELECT COUNT(p) FROM Product p
             WHERE (:categoryId IS NULL OR p.category.id = :categoryId)
-              AND p.saleStatus = :saleStatus
+              AND (:saleStatus IS NULL OR :saleStatus = 'all' OR p.saleStatus = :saleStatus)
             """)
     Page<ProductListResponse> findProductList(@Param("categoryId") Long categoryId,
                                               @Param("saleStatus") String saleStatus,
