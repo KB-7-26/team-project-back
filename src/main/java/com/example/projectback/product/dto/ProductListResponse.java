@@ -17,5 +17,6 @@ public class ProductListResponse {
     private String thumbnailUrl;
     private String sellerNickname;
     private Long favoriteCount;
+    private Integer viewCount;
     private LocalDateTime createdAt;
 }
