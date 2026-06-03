@@ -12,6 +12,8 @@ public interface ProductFavoriteRepository extends JpaRepository<ProductFavorite
 
     long countByProductId(Long productId);
 
+    long countByUserId(Long userId);
+
     boolean existsByUserIdAndProductId(Long userId, Long productId);
 
     void deleteByUserIdAndProductId(Long userId, Long productId);

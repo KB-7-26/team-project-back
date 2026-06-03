@@ -57,4 +57,15 @@ public class User {
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
     }
+
+    public void updateProfile(String nickname, String phoneNumber, String cohort, String gender) {
+        this.nickname = nickname;
+        this.phoneNumber = phoneNumber;
+        this.cohort = cohort;
+        this.gender = gender;
+    }
+
+    public void updateProfileImageUrl(String profileImageUrl) {
+        this.profileImageUrl = profileImageUrl;
+    }
 }

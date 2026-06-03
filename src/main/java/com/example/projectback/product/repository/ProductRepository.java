@@ -10,6 +10,8 @@ import org.springframework.data.repository.query.Param;
 
 public interface ProductRepository extends JpaRepository<Product, Long> {
 
+    long countBySellerIdAndSaleStatus(Long sellerId, String saleStatus);
+
     @Query(value = """
             SELECT new com.example.projectback.product.dto.ProductListResponse(
                 p.id, p.title, p.price, p.isFree, p.saleStatus, p.location,
