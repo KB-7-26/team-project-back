@@ -47,6 +47,9 @@ public class LocalImageStorageService implements ImageStorageService{
 
     @Override
     public void delete(String imageUrl) {
+        if (imageUrl == null || !imageUrl.startsWith(baseUrl)) {
+            return;
+        }
         String filename = imageUrl.substring(imageUrl.lastIndexOf("/") + 1);
         Path filePath = Path.of(uploadDir).resolve(filename);
 

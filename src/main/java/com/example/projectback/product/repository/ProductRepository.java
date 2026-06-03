@@ -16,6 +16,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
                 (SELECT pi.imageUrl FROM ProductImage pi WHERE pi.product = p ORDER BY pi.sortOrder ASC LIMIT 1),
                 p.seller.nickname,
                 (SELECT COUNT(pf) FROM ProductFavorite pf WHERE pf.product = p),
+                p.viewCount,
                 p.createdAt
             )
             FROM Product p
@@ -40,6 +41,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
                 (SELECT pi.imageUrl FROM ProductImage pi WHERE pi.product = p ORDER BY pi.sortOrder ASC LIMIT 1),
                 p.seller.nickname,
                 (SELECT COUNT(pf) FROM ProductFavorite pf WHERE pf.product = p),
+                p.viewCount,
                 p.createdAt
             )
             FROM Product p

@@ -1,8 +1,10 @@
 package com.example.projectback.product.controller;
 
 import com.example.projectback.product.dto.*;
+import com.example.projectback.product.service.ProductFavoriteService;
 import com.example.projectback.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
+import org.apache.coyote.Response;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -19,6 +21,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ProductController {
     private final ProductService productService;
+    private final ProductFavoriteService productFavoriteService;
 
     @PostMapping
     public ResponseEntity<ProductCreateResponse> createProduct(@RequestBody ProductCreateRequest request){

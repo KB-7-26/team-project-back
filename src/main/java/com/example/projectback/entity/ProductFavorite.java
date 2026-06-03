@@ -26,6 +26,11 @@ public class ProductFavorite {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    public ProductFavorite(User user, Product product) {
+        this.user = user;
+        this.product = product;
+    }
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
