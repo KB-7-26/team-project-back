@@ -4,13 +4,16 @@ import com.example.projectback.chat.dto.ChatMessageRequest;
 import com.example.projectback.chat.dto.ChatMessageResponse;
 import com.example.projectback.chat.service.ChatMessageService;
 import com.example.projectback.common.ApiResponse;
+import com.example.projectback.security.FirebaseUserPrincipal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -21,14 +24,15 @@ public class ChatMessageController {
     private final SimpMessagingTemplate messagingTemplate;
 
     // WebSocket: 메시지 전송
-    // 프론트가 /app/chat/{roomId}/send 로 보내면 여기서 처리
     @MessageMapping("/chat/{roomId}/send")
     public void sendMessage(@DestinationVariable Long roomId,
-                            ChatMessageRequest request) {
-        // DB에 저장
-        ChatMessageResponse response = chatMessageService.saveMessage(roomId, request);
+                            ChatMessageRequest request,
+                            Principal principal) {
+        // accessor.setUser()로 설정한 인증 정보에서 유저 추출
+        FirebaseUserPrincipal userPrincipal = (FirebaseUserPrincipal)
+                ((UsernamePasswordAuthenticationToken) principal).getPrincipal();
 
-        // 같은 채팅방에 있는 모든 사람에게 브로드캐스트
+        ChatMessageResponse response = chatMessageService.saveMessage(roomId, request, userPrincipal.getUser());
         messagingTemplate.convertAndSend("/topic/chat/" + roomId, response);
     }
 
