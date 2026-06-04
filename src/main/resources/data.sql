@@ -1,46 +1,34 @@
 INSERT INTO categories (name, parent_id)
-SELECT * FROM (SELECT '노트북', NULL) AS tmp
-WHERE NOT EXISTS (SELECT 1 FROM categories WHERE name = '노트북');
+SELECT * FROM (SELECT '패션/잡화', NULL) AS tmp
+WHERE NOT EXISTS (SELECT 1 FROM categories WHERE name = '패션/잡화');
 
 INSERT INTO categories (name, parent_id)
-SELECT * FROM (SELECT '모니터', NULL) AS tmp
-WHERE NOT EXISTS (SELECT 1 FROM categories WHERE name = '모니터');
+SELECT * FROM (SELECT '뷰티/미용', NULL) AS tmp
+WHERE NOT EXISTS (SELECT 1 FROM categories WHERE name = '뷰티/미용');
 
 INSERT INTO categories (name, parent_id)
-SELECT * FROM (SELECT '키보드', NULL) AS tmp
-WHERE NOT EXISTS (SELECT 1 FROM categories WHERE name = '키보드');
+SELECT * FROM (SELECT '전자기기', NULL) AS tmp
+WHERE NOT EXISTS (SELECT 1 FROM categories WHERE name = '전자기기');
 
 INSERT INTO categories (name, parent_id)
-SELECT * FROM (SELECT '마우스', NULL) AS tmp
-WHERE NOT EXISTS (SELECT 1 FROM categories WHERE name = '마우스');
+SELECT * FROM (SELECT '가구/인테리어', NULL) AS tmp
+WHERE NOT EXISTS (SELECT 1 FROM categories WHERE name = '가구/인테리어');
 
 INSERT INTO categories (name, parent_id)
-SELECT * FROM (SELECT '헤드폰', NULL) AS tmp
-WHERE NOT EXISTS (SELECT 1 FROM categories WHERE name = '헤드폰');
+SELECT * FROM (SELECT '게임', NULL) AS tmp
+WHERE NOT EXISTS (SELECT 1 FROM categories WHERE name = '게임');
 
 INSERT INTO categories (name, parent_id)
-SELECT * FROM (SELECT '태블릿', NULL) AS tmp
-WHERE NOT EXISTS (SELECT 1 FROM categories WHERE name = '태블릿');
+SELECT * FROM (SELECT '도서/문구', NULL) AS tmp
+WHERE NOT EXISTS (SELECT 1 FROM categories WHERE name = '도서/문구');
 
 INSERT INTO categories (name, parent_id)
-SELECT * FROM (SELECT '스마트폰', NULL) AS tmp
-WHERE NOT EXISTS (SELECT 1 FROM categories WHERE name = '스마트폰');
+SELECT * FROM (SELECT '스포츠/레저', NULL) AS tmp
+WHERE NOT EXISTS (SELECT 1 FROM categories WHERE name = '스포츠/레저');
 
 INSERT INTO categories (name, parent_id)
-SELECT * FROM (SELECT '기타전자제품', NULL) AS tmp
-WHERE NOT EXISTS (SELECT 1 FROM categories WHERE name = '기타전자제품');
-
-INSERT INTO categories (name, parent_id)
-SELECT * FROM (SELECT '도서', NULL) AS tmp
-WHERE NOT EXISTS (SELECT 1 FROM categories WHERE name = '도서');
-
-INSERT INTO categories (name, parent_id)
-SELECT * FROM (SELECT '의류', NULL) AS tmp
-WHERE NOT EXISTS (SELECT 1 FROM categories WHERE name = '의류');
-
-INSERT INTO categories (name, parent_id)
-SELECT * FROM (SELECT '생활용품', NULL) AS tmp
-WHERE NOT EXISTS (SELECT 1 FROM categories WHERE name = '생활용품');
+SELECT * FROM (SELECT '반려동물/취미', NULL) AS tmp
+WHERE NOT EXISTS (SELECT 1 FROM categories WHERE name = '반려동물/취미');
 
 INSERT INTO categories (name, parent_id)
 SELECT * FROM (SELECT '기타', NULL) AS tmp
