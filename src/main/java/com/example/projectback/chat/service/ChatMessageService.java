@@ -23,11 +23,9 @@ public class ChatMessageService {
     private final ChatRoomRepository chatRoomRepository;
     private final CurrentUserProvider currentUserProvider;
 
-    // 메시지 저장 + 응답 반환
+    // 메시지 저장 + 응답 반환 (WebSocket용 - User 직접 전달)
     @Transactional
-    public ChatMessageResponse saveMessage(Long chatRoomId, ChatMessageRequest request) {
-        // 현재 로그인한 사람 = 보내는 사람
-        User sender = currentUserProvider.getCurrentUser();
+    public ChatMessageResponse saveMessage(Long chatRoomId, ChatMessageRequest request, User sender) {
 
         // 채팅방 조회
         ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
