@@ -42,6 +42,15 @@ public class ChatRoom {
 
     private LocalDateTime updatedAt;
 
+    public void updateLastReadAt(boolean isSeller) {
+        if (isSeller) this.sellerLastReadAt = LocalDateTime.now();
+        else this.buyerLastReadAt = LocalDateTime.now();
+    }
+
+    public void updateLastMessageAt() {
+        this.lastMessageAt = LocalDateTime.now();
+    }
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
