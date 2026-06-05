@@ -17,4 +17,5 @@ public class ChatRoomListResponse {
     private LocalDateTime lastMessageAt;
     private LocalDateTime createdAt;
     private long unreadCount;
+    private LocalDateTime opponentLastReadAt; // 상대방이 마지막으로 읽은 시간
 }
