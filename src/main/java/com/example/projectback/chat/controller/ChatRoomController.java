@@ -5,6 +5,7 @@ import com.example.projectback.chat.dto.ChatRoomCreateResponse;
 import com.example.projectback.chat.dto.ChatRoomListResponse;
 import com.example.projectback.chat.service.ChatRoomService;
 import com.example.projectback.common.ApiResponse;
+import com.example.projectback.security.CurrentUserProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -19,6 +20,7 @@ public class ChatRoomController {
 
     private final ChatRoomService chatRoomService;
     private final SimpMessagingTemplate messagingTemplate;
+    private final CurrentUserProvider currentUserProvider;
 
     @PostMapping
     public ResponseEntity<ApiResponse<ChatRoomCreateResponse>> createChatRoom(@RequestBody ChatRoomCreateRequest request) {
@@ -32,11 +34,12 @@ public class ChatRoomController {
         return ResponseEntity.ok(ApiResponse.success(response, "채팅방 목록 조회 성공"));
     }
 
-    // 채팅방 입장 시 읽음 처리 → 상대방에게 "읽음" WebSocket 이벤트 전송
+    // 채팅방 입장 시 읽음 처리 → 읽은 사람의 userId 포함해서 이벤트 전송
     @PatchMapping("/{roomId}/read")
     public ResponseEntity<ApiResponse<Void>> markAsRead(@PathVariable Long roomId) {
         chatRoomService.markAsRead(roomId);
-        messagingTemplate.convertAndSend("/topic/chat/" + roomId + "/read", true);
+        Long readerId = currentUserProvider.getCurrentUser().getId();
+        messagingTemplate.convertAndSend("/topic/chat/" + roomId + "/read", readerId);
         return ResponseEntity.ok(ApiResponse.success(null, "읽음 처리 성공"));
     }
 
