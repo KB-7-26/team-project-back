@@ -33,4 +33,11 @@ public class UserMarketController {
     public ResponseEntity<List<ProductListResponse>> getMyFavorites() {
         return ResponseEntity.ok(userMarketService.getMyFavorites());
     }
+
+    @GetMapping("/purchases")
+    public ResponseEntity<Page<ProductListResponse>> getMyPurchases(
+            @PageableDefault(sort = "completedAt", direction = Sort.Direction.DESC, size = 10) Pageable pageable
+    ) {
+        return ResponseEntity.ok(userMarketService.getMyPurchases(pageable));
+    }
 }

@@ -5,6 +5,7 @@ import com.example.projectback.product.dto.ProductListResponse;
 import com.example.projectback.product.repository.ProductFavoriteRepository;
 import com.example.projectback.product.repository.ProductRepository;
 import com.example.projectback.security.CurrentUserProvider;
+import com.example.projectback.transaction.repository.TransactionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,6 +19,7 @@ import java.util.List;
 public class UserMarketService {
     private final ProductRepository productRepository;
     private final ProductFavoriteRepository productFavoriteRepository;
+    private final TransactionRepository transactionRepository;
     private final CurrentUserProvider currentUserProvider;
 
     @Transactional(readOnly = true)
@@ -30,5 +32,11 @@ public class UserMarketService {
     public List<ProductListResponse> getMyFavorites() {
         User user = currentUserProvider.getCurrentUser();
         return productFavoriteRepository.findFavoriteProductsByUserId(user.getId());
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ProductListResponse> getMyPurchases(Pageable pageable) {
+        User user = currentUserProvider.getCurrentUser();
+        return transactionRepository.findCompletedPurchaseProductsByBuyerId(user.getId(), pageable);
     }
 }
