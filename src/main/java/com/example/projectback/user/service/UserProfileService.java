@@ -8,6 +8,7 @@ import com.example.projectback.security.CurrentUserProvider;
 import com.example.projectback.user.dto.UserProfileResponse;
 import com.example.projectback.user.dto.UserProfileStatsResponse;
 import com.example.projectback.user.dto.UserProfileUpdateRequest;
+import com.example.projectback.user.dto.UserPublicProfileResponse;
 import com.example.projectback.user.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +31,13 @@ public class UserProfileService {
     public UserProfileResponse getMyProfile() {
         User user = getCurrentUser();
         return UserProfileResponse.from(user, getProfileStats(user.getId()));
+    }
+
+    @Transactional(readOnly = true)
+    public UserPublicProfileResponse getUserProfile(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다."));
+        return UserPublicProfileResponse.from(user, getProfileStats(user.getId()));
     }
 
     @Transactional
