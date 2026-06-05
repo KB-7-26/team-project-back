@@ -39,6 +39,7 @@ public class ChatMessageService {
                 .build();
 
         chatMessageRepository.save(message);
+        chatRoom.updateLastMessageAt();
 
         return new ChatMessageResponse(
                 message.getId(),

@@ -16,4 +16,5 @@ public class ChatRoomListResponse {
     private String opponentNickname;
     private LocalDateTime lastMessageAt;
     private LocalDateTime createdAt;
+    private long unreadCount;
 }

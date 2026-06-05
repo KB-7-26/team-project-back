@@ -3,6 +3,7 @@ package com.example.projectback.chat.controller;
 import com.example.projectback.chat.dto.ChatMessageRequest;
 import com.example.projectback.chat.dto.ChatMessageResponse;
 import com.example.projectback.chat.service.ChatMessageService;
+import com.example.projectback.chat.service.ChatRoomService;
 import com.example.projectback.common.ApiResponse;
 import com.example.projectback.security.FirebaseUserPrincipal;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,7 @@ import java.util.List;
 public class ChatMessageController {
 
     private final ChatMessageService chatMessageService;
+    private final ChatRoomService chatRoomService;
     private final SimpMessagingTemplate messagingTemplate;
 
     // WebSocket: 메시지 전송
@@ -34,6 +36,11 @@ public class ChatMessageController {
 
         ChatMessageResponse response = chatMessageService.saveMessage(roomId, request, userPrincipal.getUser());
         messagingTemplate.convertAndSend("/topic/chat/" + roomId, response);
+
+        // 수신자에게 알림 푸시 (수신자가 채팅방 밖에 있어도 뱃지 갱신)
+        Long receiverId = chatRoomService.getOpponentId(roomId, userPrincipal.getUser().getId());
+        messagingTemplate.convertAndSend("/topic/notification/" + receiverId, true);
+
     }
 
     // REST: 채팅방 메시지 목록 조회 (채팅방 입장 시 이전 메시지 불러오기)
