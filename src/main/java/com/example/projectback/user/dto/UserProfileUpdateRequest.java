@@ -16,10 +16,6 @@ public class UserProfileUpdateRequest {
     @Size(max = 50, message = "닉네임은 50자 이하로 입력해주세요.")
     private String nickname;
 
-    @NotBlank(message = "전화번호를 입력해주세요.")
-    @Pattern(regexp = "^[0-9]{2,3}-?[0-9]{3,4}-?[0-9]{4}$", message = "전화번호는 숫자 또는 하이픈 형식으로 입력해주세요.")
-    private String phoneNumber;
-
     @NotBlank(message = "회차를 입력해주세요.")
     @Size(max = 50, message = "회차는 50자 이하로 입력해주세요.")
     private String cohort;

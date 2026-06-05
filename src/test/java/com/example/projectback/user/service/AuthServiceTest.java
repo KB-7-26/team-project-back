@@ -43,7 +43,6 @@ class AuthServiceTest {
         ProfileCreateRequest request = new ProfileCreateRequest(
                 "홍길동",
                 "길동",
-                "010-1234-5678",
                 "M",
                 "30회차 비전공",
                 null
@@ -52,7 +51,6 @@ class AuthServiceTest {
         given(userRepository.existsByFirebaseUid("firebase-uid-1")).willReturn(false);
         given(userRepository.existsByEmail("user01@example.com")).willReturn(false);
         given(userRepository.existsByNickname("길동")).willReturn(false);
-        given(userRepository.existsByPhoneNumber("01012345678")).willReturn(false);
         given(userRepository.save(any(User.class))).willAnswer(invocation -> invocation.getArgument(0));
 
         authService.createProfile(principal, request);
@@ -65,7 +63,6 @@ class AuthServiceTest {
         assertThat(savedUser.getEmail()).isEqualTo("user01@example.com");
         assertThat(savedUser.getName()).isEqualTo("홍길동");
         assertThat(savedUser.getNickname()).isEqualTo("길동");
-        assertThat(savedUser.getPhoneNumber()).isEqualTo("01012345678");
         assertThat(savedUser.getProfileImageUrl()).isEqualTo("https://example.com/profile.png");
         assertThat(savedUser.getTrustScore()).isZero();
         assertThat(savedUser.getIsVerified()).isFalse();
@@ -83,7 +80,6 @@ class AuthServiceTest {
         ProfileCreateRequest request = new ProfileCreateRequest(
                 "홍길동",
                 "길동",
-                "010-1234-5678",
                 "M",
                 "30회차 비전공",
                 null

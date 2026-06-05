@@ -31,9 +31,6 @@ public class User {
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(unique = true)
-    private String phoneNumber;
-
     private String profileImageUrl;
 
     @Column(nullable = false)
@@ -58,9 +55,8 @@ public class User {
         this.createdAt = LocalDateTime.now();
     }
 
-    public void updateProfile(String nickname, String phoneNumber, String cohort, String gender) {
+    public void updateProfile(String nickname, String cohort, String gender) {
         this.nickname = nickname;
-        this.phoneNumber = phoneNumber;
         this.cohort = cohort;
         this.gender = gender;
     }

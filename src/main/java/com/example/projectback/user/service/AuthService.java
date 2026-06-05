@@ -38,7 +38,6 @@ public class AuthService {
                 .name(request.getName().trim())
                 .nickname(request.getNickname().trim())
                 .email(principal.getEmail().trim())
-                .phoneNumber(normalizePhoneNumber(request.getPhoneNumber()))
                 .gender(request.getGender())
                 .cohort(request.getCohort().trim())
                 .profileImageUrl(resolveProfileImageUrl(principal, request))
@@ -64,11 +63,6 @@ public class AuthService {
         if (userRepository.existsByNickname(request.getNickname().trim())) {
             throw new DuplicateResourceException("이미 사용 중인 닉네임입니다.");
         }
-
-        String phoneNumber = normalizePhoneNumber(request.getPhoneNumber());
-        if (phoneNumber != null && userRepository.existsByPhoneNumber(phoneNumber)) {
-            throw new DuplicateResourceException("이미 사용 중인 전화번호입니다.");
-        }
     }
 
     private String resolveProfileImageUrl(FirebaseUserPrincipal principal, ProfileCreateRequest request) {
@@ -78,10 +72,4 @@ public class AuthService {
         return principal.getProfileImageUrl();
     }
 
-    private String normalizePhoneNumber(String phoneNumber) {
-        if (!StringUtils.hasText(phoneNumber)) {
-            return null;
-        }
-        return phoneNumber.trim().replace("-", "");
-    }
 }
