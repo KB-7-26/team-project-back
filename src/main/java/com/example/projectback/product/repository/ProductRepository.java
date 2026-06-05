@@ -62,4 +62,26 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
                                                                       @Param("saleStatus") String saleStatus,
                                                                       @Param("keyword") String keyword,
                                                                       Pageable pageable);
+
+    @Query(value = """
+            SELECT new com.example.projectback.product.dto.ProductListResponse(
+                p.id, p.title, p.price, p.isFree, p.saleStatus, p.location,
+                (SELECT pi.imageUrl FROM ProductImage pi WHERE pi.product = p ORDER BY pi.sortOrder ASC LIMIT 1),
+                p.seller.nickname,
+                (SELECT COUNT(pf) FROM ProductFavorite pf WHERE pf.product = p),
+                p.viewCount,
+                p.createdAt
+            )
+            FROM Product p
+            WHERE p.seller.id = :sellerId
+              AND (:saleStatus IS NULL OR :saleStatus = 'all' OR p.saleStatus = :saleStatus)
+            """,
+            countQuery = """
+            SELECT COUNT(p) FROM Product p
+            WHERE p.seller.id = :sellerId
+              AND (:saleStatus IS NULL OR :saleStatus = 'all' OR p.saleStatus = :saleStatus)
+            """)
+    Page<ProductListResponse> findMyProducts(@Param("sellerId") Long sellerId,
+                                             @Param("saleStatus") String saleStatus,
+                                             Pageable pageable);
 }
