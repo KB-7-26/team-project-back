@@ -86,10 +86,13 @@ public class ChatRoomService {
                             : room.getSeller();
 
                     boolean isSeller = room.getSeller().getId().equals(userId);
-                    LocalDateTime lastReadAt = isSeller ? room.getSellerLastReadAt() : room.getBuyerLastReadAt();
-                    long unread = lastReadAt == null
+                    LocalDateTime myLastReadAt = isSeller ? room.getSellerLastReadAt() : room.getBuyerLastReadAt();
+                    // 상대방의 마지막 읽은 시간 (내 메시지 읽음 표시 기준)
+                    LocalDateTime opponentLastReadAt = isSeller ? room.getBuyerLastReadAt() : room.getSellerLastReadAt();
+
+                    long unread = myLastReadAt == null
                             ? chatMessageRepository.countByChatRoomIdAndSenderIdNot(room.getId(), userId)
-                            : chatMessageRepository.countByChatRoomIdAndCreatedAtAfterAndSenderIdNot(room.getId(), lastReadAt, userId);
+                            : chatMessageRepository.countByChatRoomIdAndCreatedAtAfterAndSenderIdNot(room.getId(), myLastReadAt, userId);
 
                     return new ChatRoomListResponse(
                             room.getId(),
@@ -99,7 +102,8 @@ public class ChatRoomService {
                             opponent.getNickname(),
                             room.getLastMessageAt(),
                             room.getCreatedAt(),
-                            unread
+                            unread,
+                            opponentLastReadAt
                     );
                 })
                 .toList();
