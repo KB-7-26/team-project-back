@@ -14,7 +14,6 @@ public class AuthUserResponse {
     private String email;
     private String name;
     private String nickname;
-    private String phoneNumber;
     private String gender;
     private String cohort;
     private String profileImageUrl;
@@ -28,7 +27,6 @@ public class AuthUserResponse {
                 user.getEmail(),
                 user.getName(),
                 user.getNickname(),
-                user.getPhoneNumber(),
                 user.getGender(),
                 user.getCohort(),
                 user.getProfileImageUrl(),

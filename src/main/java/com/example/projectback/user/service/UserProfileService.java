@@ -37,12 +37,11 @@ public class UserProfileService {
         User user = getCurrentUser();
 
         String nickname = request.getNickname().trim();
-        String phoneNumber = normalizePhoneNumber(request.getPhoneNumber());
         String cohort = request.getCohort().trim();
         String gender = request.getGender().trim();
 
-        validateDuplicateProfile(user.getId(), nickname, phoneNumber);
-        user.updateProfile(nickname, phoneNumber, cohort, gender);
+        validateDuplicateProfile(user.getId(), nickname);
+        user.updateProfile(nickname, cohort, gender);
 
         return UserProfileResponse.from(user, getProfileStats(user.getId()));
     }
@@ -61,17 +60,9 @@ public class UserProfileService {
         );
     }
 
-    private void validateDuplicateProfile(Long userId, String nickname, String phoneNumber) {
+    private void validateDuplicateProfile(Long userId, String nickname) {
         if (userRepository.existsByNicknameAndIdNot(nickname, userId)) {
             throw new DuplicateResourceException("이미 사용 중인 닉네임입니다.");
         }
-
-        if (userRepository.existsByPhoneNumberAndIdNot(phoneNumber, userId)) {
-            throw new DuplicateResourceException("이미 사용 중인 전화번호입니다.");
-        }
-    }
-
-    private String normalizePhoneNumber(String phoneNumber) {
-        return phoneNumber.trim().replace("-", "");
     }
 }

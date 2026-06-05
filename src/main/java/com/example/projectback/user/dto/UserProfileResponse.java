@@ -14,7 +14,6 @@ public class UserProfileResponse {
     private String name;
     private String nickname;
     private String email;
-    private String phoneNumber;
     private String profileImageUrl;
     private String cohort;
     private String gender;
@@ -29,7 +28,6 @@ public class UserProfileResponse {
                 user.getName(),
                 user.getNickname(),
                 user.getEmail(),
-                user.getPhoneNumber(),
                 user.getProfileImageUrl(),
                 user.getCohort(),
                 user.getGender(),
