@@ -77,7 +77,7 @@ public class ChatRoomService {
         Long userId = currentUser.getId();
 
         return chatRoomRepository
-                .findBySellerIdOrBuyerIdOrderByCreatedAtDesc(userId, userId)
+                .findByUserIdOrderByLastMessageDesc(userId)
                 .stream()
                 .map(room -> {
                     // 상대방 = 내가 판매자면 구매자, 내가 구매자면 판매자
