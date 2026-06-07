@@ -37,15 +37,17 @@ public class ChatRoomService {
                 : chatRoom.getSeller().getId();
     }
 
-    // 채팅방 입장 시 호출 → 내 lastReadAt 갱신
+    // 채팅방 입장 시 호출 → 내 lastReadAt 갱신, 상대방 lastReadAt 반환
     @Transactional
-    public void markAsRead(Long roomId) {
+    public LocalDateTime markAsRead(Long roomId) {
         User currentUser = currentUserProvider.getCurrentUser();
         ChatRoom chatRoom = chatRoomRepository.findById(roomId)
                 .orElseThrow(() -> new EntityNotFoundException("채팅방을 찾을 수 없습니다."));
 
         boolean isSeller = chatRoom.getSeller().getId().equals(currentUser.getId());
         chatRoom.updateLastReadAt(isSeller);
+
+        return isSeller ? chatRoom.getBuyerLastReadAt() : chatRoom.getSellerLastReadAt();
     }
 
     // 내 전체 채팅방의 안 읽은 메시지 합산 (네비바 뱃지용)
