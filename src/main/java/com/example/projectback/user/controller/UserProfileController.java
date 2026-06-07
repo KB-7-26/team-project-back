@@ -7,9 +7,9 @@ import com.example.projectback.user.dto.UserPublicProfileResponse;
 import com.example.projectback.user.service.UserProfileService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -48,10 +48,14 @@ public class UserProfileController {
     }
 
     @PostMapping(value = "/me/profile-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ApiResponse<Void>> uploadProfileImage(@RequestPart("image") MultipartFile image) {
-        // TODO: ImageStorageService를 사용해 로컬/S3 저장소에 업로드하고 users.profileImageUrl을 갱신한다.
-        return ResponseEntity
-                .status(HttpStatus.NOT_IMPLEMENTED)
-                .body(ApiResponse.failure("프로필 이미지 업로드는 아직 구현 예정입니다."));
+    public ResponseEntity<ApiResponse<UserProfileResponse>> uploadProfileImage(@RequestPart("image") MultipartFile image) {
+        UserProfileResponse response = userProfileService.uploadMyProfileImage(image);
+        return ResponseEntity.ok(ApiResponse.success(response, "프로필 이미지 수정 성공"));
+    }
+
+    @DeleteMapping("/me/profile-image")
+    public ResponseEntity<ApiResponse<UserProfileResponse>> deleteProfileImage() {
+        UserProfileResponse response = userProfileService.deleteMyProfileImage();
+        return ResponseEntity.ok(ApiResponse.success(response, "프로필 이미지 삭제 성공"));
     }
 }
