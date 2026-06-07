@@ -2,6 +2,7 @@ package com.example.projectback.user.service;
 
 import com.example.projectback.common.exception.DuplicateResourceException;
 import com.example.projectback.entity.User;
+import com.example.projectback.image.service.ImageStorageService;
 import com.example.projectback.product.repository.ProductFavoriteRepository;
 import com.example.projectback.product.repository.ProductRepository;
 import com.example.projectback.security.CurrentUserProvider;
@@ -14,6 +15,7 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +28,7 @@ public class UserProfileService {
     private final ProductRepository productRepository;
     private final ProductFavoriteRepository productFavoriteRepository;
     private final CurrentUserProvider currentUserProvider;
+    private final ImageStorageService imageStorageService;
 
     @Transactional(readOnly = true)
     public UserProfileResponse getMyProfile() {
@@ -45,11 +48,38 @@ public class UserProfileService {
         User user = getCurrentUser();
 
         String nickname = request.getNickname().trim();
-        String cohort = request.getCohort().trim();
-        String gender = request.getGender().trim();
 
         validateDuplicateProfile(user.getId(), nickname);
-        user.updateProfile(nickname, cohort, gender);
+        user.updateNickname(nickname);
+
+        return UserProfileResponse.from(user, getProfileStats(user.getId()));
+    }
+
+    @Transactional
+    public UserProfileResponse uploadMyProfileImage(MultipartFile image) {
+        User user = getCurrentUser();
+        String previousImageUrl = user.getProfileImageUrl();
+        String imageUrl = imageStorageService.store(image);
+
+        user.updateProfileImageUrl(imageUrl);
+
+        if (previousImageUrl != null && !previousImageUrl.equals(imageUrl)) {
+            imageStorageService.delete(previousImageUrl);
+        }
+
+        return UserProfileResponse.from(user, getProfileStats(user.getId()));
+    }
+
+    @Transactional
+    public UserProfileResponse deleteMyProfileImage() {
+        User user = getCurrentUser();
+        String previousImageUrl = user.getProfileImageUrl();
+
+        user.updateProfileImageUrl(null);
+
+        if (previousImageUrl != null) {
+            imageStorageService.delete(previousImageUrl);
+        }
 
         return UserProfileResponse.from(user, getProfileStats(user.getId()));
     }
