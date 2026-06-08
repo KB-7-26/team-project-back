@@ -5,6 +5,8 @@ import com.example.projectback.board.dto.BoardPostCreateResponse;
 import com.example.projectback.board.dto.BoardPostDetailResponse;
 import com.example.projectback.board.dto.BoardPostListItemResponse;
 import com.example.projectback.board.dto.BoardPostUpdateRequest;
+import com.example.projectback.board.repository.BoardCommentRepository;
+import com.example.projectback.board.repository.BoardPostLikeRepository;
 import com.example.projectback.board.repository.BoardPostRepository;
 import com.example.projectback.entity.BoardPost;
 import com.example.projectback.entity.User;
@@ -26,7 +28,9 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.times;
@@ -36,6 +40,12 @@ class BoardPostServiceTest {
 
     @Mock
     private BoardPostRepository boardPostRepository;
+
+    @Mock
+    private BoardCommentRepository boardCommentRepository;
+
+    @Mock
+    private BoardPostLikeRepository boardPostLikeRepository;
 
     @Mock
     private UserRepository userRepository;
@@ -48,6 +58,9 @@ class BoardPostServiceTest {
     @BeforeEach
     void setUp() {
         mockUser = mock(User.class);
+        lenient().when(boardCommentRepository.countByPostId(anyLong())).thenReturn(0L);
+        lenient().when(boardPostLikeRepository.countByPostId(anyLong())).thenReturn(0L);
+        lenient().when(boardPostLikeRepository.existsByUserIdAndPostId(anyLong(), anyLong())).thenReturn(false);
     }
 
     // ── getPosts ──────────────────────────────────────────────

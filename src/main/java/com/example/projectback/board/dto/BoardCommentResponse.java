@@ -13,14 +13,19 @@ public class BoardCommentResponse {
     private final String content;
     private final LocalDateTime createdAt;
     private final boolean isOwner;
+    private final boolean liked;
+    private final long likeCount;
     private final List<BoardCommentResponse> replies;
 
-    public BoardCommentResponse(BoardComment comment, String displayName, Long currentUserId, List<BoardCommentResponse> replies) {
+    public BoardCommentResponse(BoardComment comment, String displayName, Long currentUserId,
+                                List<BoardCommentResponse> replies, boolean liked, long likeCount) {
         this.id = comment.getId();
         this.displayName = displayName;
         this.content = comment.getContent();
         this.createdAt = comment.getCreatedAt();
         this.isOwner = currentUserId != null && currentUserId.equals(comment.getAuthor().getId());
+        this.liked = liked;
+        this.likeCount = likeCount;
         this.replies = replies;
     }
 }

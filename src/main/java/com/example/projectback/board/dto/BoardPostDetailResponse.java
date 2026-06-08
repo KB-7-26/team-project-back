@@ -15,8 +15,10 @@ public class BoardPostDetailResponse {
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
     private final boolean isOwner;
+    private final boolean liked;
+    private final long likeCount;
 
-    public BoardPostDetailResponse(BoardPost post, Long currentUserId) {
+    public BoardPostDetailResponse(BoardPost post, Long currentUserId, boolean liked, long likeCount) {
         this.id = post.getId();
         this.title = post.getTitle();
         this.content = post.getContent();
@@ -25,5 +27,7 @@ public class BoardPostDetailResponse {
         this.createdAt = post.getCreatedAt();
         this.updatedAt = post.getUpdatedAt();
         this.isOwner = currentUserId != null && currentUserId.equals(post.getAuthor().getId());
+        this.liked = liked;
+        this.likeCount = likeCount;
     }
 }
