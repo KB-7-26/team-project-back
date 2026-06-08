@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
+
 public interface BoardPostRepository extends JpaRepository<BoardPost, Long> {
 
     Page<BoardPost> findByAuthorId(Long authorId, Pageable pageable);
@@ -33,6 +35,14 @@ public interface BoardPostRepository extends JpaRepository<BoardPost, Long> {
                     """
     )
     Page<BoardPost> findCommentedPostsByAuthorId(@Param("authorId") Long authorId, Pageable pageable);
+
+    @Query("""
+            SELECT p FROM BoardPost p
+            ORDER BY (SELECT COUNT(l) FROM BoardPostLike l WHERE l.post.id = p.id) DESC, p.createdAt DESC
+            """)
+    List<BoardPost> findTopByLikeCount(Pageable pageable);
+
+    List<BoardPost> findAllByOrderByViewCountDescCreatedAtDesc(Pageable pageable);
 
     @Modifying(clearAutomatically = true)
     @Query("UPDATE BoardPost p SET p.viewCount = p.viewCount + 1 WHERE p.id = :id")

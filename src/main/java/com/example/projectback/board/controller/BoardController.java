@@ -46,6 +46,20 @@ public class BoardController {
         return ResponseEntity.ok(ApiResponse.success(response, "게시글 목록 조회 성공"));
     }
 
+    @GetMapping("/popular")
+    public ResponseEntity<ApiResponse<List<BoardPostListItemResponse>>> getPopularPosts(
+            @RequestParam(defaultValue = "5") int limit) {
+        List<BoardPostListItemResponse> response = boardPostService.getPopularPosts(limit);
+        return ResponseEntity.ok(ApiResponse.success(response, "인기글 조회 성공"));
+    }
+
+    @GetMapping("/most-viewed")
+    public ResponseEntity<ApiResponse<List<BoardPostListItemResponse>>> getMostViewedPosts(
+            @RequestParam(defaultValue = "5") int limit) {
+        List<BoardPostListItemResponse> response = boardPostService.getMostViewedPosts(limit);
+        return ResponseEntity.ok(ApiResponse.success(response, "조회수 많은 글 조회 성공"));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<BoardPostDetailResponse>> getPostDetail(@PathVariable Long id) {
         Long currentUserId = null;
