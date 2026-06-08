@@ -35,13 +35,20 @@ public class BoardPostService {
     private final UserRepository userRepository;
 
     @Transactional(readOnly = true)
-    public Page<BoardPostListItemResponse> getPosts(Pageable pageable) {
-        return boardPostRepository.findAll(pageable)
-                .map(post -> new BoardPostListItemResponse(
-                        post,
-                        boardCommentRepository.countByPostId(post.getId()),
-                        boardPostLikeRepository.countByPostId(post.getId())
-                ));
+    public Page<BoardPostListItemResponse> getPosts(String keyword, String searchType, Pageable pageable) {
+        Page<BoardPost> page;
+        if (keyword == null || keyword.isBlank()) {
+            page = boardPostRepository.findAll(pageable);
+        } else if ("all".equalsIgnoreCase(searchType)) {
+            page = boardPostRepository.findByTitleOrContentContainingIgnoreCase(keyword, pageable);
+        } else {
+            page = boardPostRepository.findByTitleContainingIgnoreCase(keyword, pageable);
+        }
+        return page.map(post -> new BoardPostListItemResponse(
+                post,
+                boardCommentRepository.countByPostId(post.getId()),
+                boardPostLikeRepository.countByPostId(post.getId())
+        ));
     }
 
     @Transactional(readOnly = true)

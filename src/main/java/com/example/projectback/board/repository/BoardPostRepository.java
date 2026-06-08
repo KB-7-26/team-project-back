@@ -38,6 +38,19 @@ public interface BoardPostRepository extends JpaRepository<BoardPost, Long> {
 
     @Query("""
             SELECT p FROM BoardPost p
+            WHERE LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%'))
+            """)
+    Page<BoardPost> findByTitleContainingIgnoreCase(@Param("keyword") String keyword, Pageable pageable);
+
+    @Query("""
+            SELECT p FROM BoardPost p
+            WHERE LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%'))
+               OR LOWER(p.content) LIKE LOWER(CONCAT('%', :keyword, '%'))
+            """)
+    Page<BoardPost> findByTitleOrContentContainingIgnoreCase(@Param("keyword") String keyword, Pageable pageable);
+
+    @Query("""
+            SELECT p FROM BoardPost p
             ORDER BY (SELECT COUNT(l) FROM BoardPostLike l WHERE l.post.id = p.id) DESC, p.createdAt DESC
             """)
     List<BoardPost> findTopByLikeCount(Pageable pageable);
