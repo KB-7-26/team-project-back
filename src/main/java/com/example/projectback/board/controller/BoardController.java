@@ -39,10 +39,12 @@ public class BoardController {
     @GetMapping
     public ResponseEntity<ApiResponse<Page<BoardPostListItemResponse>>> getPosts(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "title") String searchType) {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        Page<BoardPostListItemResponse> response = boardPostService.getPosts(pageable);
+        Page<BoardPostListItemResponse> response = boardPostService.getPosts(keyword, searchType, pageable);
         return ResponseEntity.ok(ApiResponse.success(response, "게시글 목록 조회 성공"));
     }
 

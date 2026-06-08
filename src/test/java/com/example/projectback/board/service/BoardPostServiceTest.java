@@ -81,7 +81,7 @@ class BoardPostServiceTest {
         given(boardPostRepository.findAll(pageable)).willReturn(new PageImpl<>(List.of(post)));
 
         // when
-        Page<BoardPostListItemResponse> result = boardPostService.getPosts(pageable);
+        Page<BoardPostListItemResponse> result = boardPostService.getPosts(null, "title", pageable);
 
         // then
         assertThat(result.getContent()).hasSize(1);
@@ -97,7 +97,7 @@ class BoardPostServiceTest {
         given(boardPostRepository.findAll(pageable)).willReturn(Page.empty());
 
         // when
-        Page<BoardPostListItemResponse> result = boardPostService.getPosts(pageable);
+        Page<BoardPostListItemResponse> result = boardPostService.getPosts(null, "title", pageable);
 
         // then
         assertThat(result.getContent()).isEmpty();
