@@ -19,6 +19,9 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.data.domain.PageRequest;
+
+import java.util.List;
 import java.util.NoSuchElementException;
 
 @Slf4j
@@ -39,6 +42,30 @@ public class BoardPostService {
                         boardCommentRepository.countByPostId(post.getId()),
                         boardPostLikeRepository.countByPostId(post.getId())
                 ));
+    }
+
+    @Transactional(readOnly = true)
+    public List<BoardPostListItemResponse> getPopularPosts(int limit) {
+        return boardPostRepository.findTopByLikeCount(PageRequest.of(0, limit))
+                .stream()
+                .map(post -> new BoardPostListItemResponse(
+                        post,
+                        boardCommentRepository.countByPostId(post.getId()),
+                        boardPostLikeRepository.countByPostId(post.getId())
+                ))
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<BoardPostListItemResponse> getMostViewedPosts(int limit) {
+        return boardPostRepository.findAllByOrderByViewCountDescCreatedAtDesc(PageRequest.of(0, limit))
+                .stream()
+                .map(post -> new BoardPostListItemResponse(
+                        post,
+                        boardCommentRepository.countByPostId(post.getId()),
+                        boardPostLikeRepository.countByPostId(post.getId())
+                ))
+                .toList();
     }
 
     @Transactional
