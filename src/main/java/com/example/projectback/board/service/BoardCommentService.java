@@ -3,6 +3,7 @@ package com.example.projectback.board.service;
 import com.example.projectback.board.dto.BoardCommentCreateRequest;
 import com.example.projectback.board.dto.BoardCommentResponse;
 import com.example.projectback.board.dto.BoardCommentUpdateRequest;
+import com.example.projectback.board.repository.BoardCommentLikeRepository;
 import com.example.projectback.board.repository.BoardCommentRepository;
 import com.example.projectback.board.repository.BoardPostRepository;
 import com.example.projectback.entity.BoardComment;
@@ -27,6 +28,7 @@ import java.util.stream.Collectors;
 public class BoardCommentService {
 
     private final BoardCommentRepository boardCommentRepository;
+    private final BoardCommentLikeRepository boardCommentLikeRepository;
     private final BoardPostRepository boardPostRepository;
     private final UserRepository userRepository;
 
@@ -74,7 +76,7 @@ public class BoardCommentService {
         List<BoardComment> allComments = boardCommentRepository.findByPostIdOrderByCreatedAtAsc(postId);
         Map<Long, String> anonMap = buildAnonMap(allComments, post.getAuthor().getId());
 
-        return new BoardCommentResponse(comment, anonMap.get(userId), userId, List.of());
+        return new BoardCommentResponse(comment, anonMap.get(userId), userId, List.of(), false, 0L);
     }
 
     @Transactional
@@ -90,7 +92,9 @@ public class BoardCommentService {
         List<BoardComment> allComments = boardCommentRepository.findByPostIdOrderByCreatedAtAsc(postId);
         Map<Long, String> anonMap = buildAnonMap(allComments, post.getAuthor().getId());
 
-        return new BoardCommentResponse(comment, anonMap.get(userId), userId, List.of());
+        boolean liked = boardCommentLikeRepository.existsByUserIdAndCommentId(userId, commentId);
+        long likeCount = boardCommentLikeRepository.countByCommentId(commentId);
+        return new BoardCommentResponse(comment, anonMap.get(userId), userId, List.of(), liked, likeCount);
     }
 
     @Transactional
@@ -124,10 +128,19 @@ public class BoardCommentService {
         List<BoardCommentResponse> replies = repliesByParentId
                 .getOrDefault(comment.getId(), List.of())
                 .stream()
-                .map(reply -> new BoardCommentResponse(reply, anonMap.get(reply.getAuthor().getId()), currentUserId, List.of()))
+                .map(reply -> {
+                    boolean replyLiked = currentUserId != null &&
+                            boardCommentLikeRepository.existsByUserIdAndCommentId(currentUserId, reply.getId());
+                    long replyLikeCount = boardCommentLikeRepository.countByCommentId(reply.getId());
+                    return new BoardCommentResponse(
+                            reply, anonMap.get(reply.getAuthor().getId()), currentUserId, List.of(), replyLiked, replyLikeCount);
+                })
                 .collect(Collectors.toList());
 
-        return new BoardCommentResponse(comment, anonMap.get(comment.getAuthor().getId()), currentUserId, replies);
+        boolean liked = currentUserId != null &&
+                boardCommentLikeRepository.existsByUserIdAndCommentId(currentUserId, comment.getId());
+        long likeCount = boardCommentLikeRepository.countByCommentId(comment.getId());
+        return new BoardCommentResponse(comment, anonMap.get(comment.getAuthor().getId()), currentUserId, replies, liked, likeCount);
     }
 
     private BoardPost getPostOrThrow(Long postId) {

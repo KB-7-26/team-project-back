@@ -5,6 +5,8 @@ import com.example.projectback.board.dto.BoardPostCreateResponse;
 import com.example.projectback.board.dto.BoardPostDetailResponse;
 import com.example.projectback.board.dto.BoardPostListItemResponse;
 import com.example.projectback.board.dto.BoardPostUpdateRequest;
+import com.example.projectback.board.repository.BoardCommentRepository;
+import com.example.projectback.board.repository.BoardPostLikeRepository;
 import com.example.projectback.board.repository.BoardPostRepository;
 import com.example.projectback.entity.BoardPost;
 import com.example.projectback.entity.User;
@@ -25,12 +27,18 @@ import java.util.NoSuchElementException;
 public class BoardPostService {
 
     private final BoardPostRepository boardPostRepository;
+    private final BoardCommentRepository boardCommentRepository;
+    private final BoardPostLikeRepository boardPostLikeRepository;
     private final UserRepository userRepository;
 
     @Transactional(readOnly = true)
     public Page<BoardPostListItemResponse> getPosts(Pageable pageable) {
         return boardPostRepository.findAll(pageable)
-                .map(BoardPostListItemResponse::new);
+                .map(post -> new BoardPostListItemResponse(
+                        post,
+                        boardCommentRepository.countByPostId(post.getId()),
+                        boardPostLikeRepository.countByPostId(post.getId())
+                ));
     }
 
     @Transactional
@@ -38,7 +46,9 @@ public class BoardPostService {
         getPostOrThrow(postId);
         boardPostRepository.incrementViewCount(postId);
         BoardPost post = getPostOrThrow(postId);
-        return new BoardPostDetailResponse(post, currentUserId);
+        boolean liked = currentUserId != null && boardPostLikeRepository.existsByUserIdAndPostId(currentUserId, postId);
+        long likeCount = boardPostLikeRepository.countByPostId(postId);
+        return new BoardPostDetailResponse(post, currentUserId, liked, likeCount);
     }
 
     @Transactional
@@ -65,7 +75,10 @@ public class BoardPostService {
 
         post.update(request.getTitle(), request.getContent());
         log.info("게시글 수정: postId={}, userId={}", postId, userId);
-        return new BoardPostDetailResponse(post, userId);
+
+        boolean liked = boardPostLikeRepository.existsByUserIdAndPostId(userId, postId);
+        long likeCount = boardPostLikeRepository.countByPostId(postId);
+        return new BoardPostDetailResponse(post, userId, liked, likeCount);
     }
 
     @Transactional

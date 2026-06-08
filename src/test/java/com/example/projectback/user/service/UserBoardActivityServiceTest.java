@@ -1,6 +1,8 @@
 package com.example.projectback.user.service;
 
 import com.example.projectback.board.dto.BoardPostListItemResponse;
+import com.example.projectback.board.repository.BoardCommentRepository;
+import com.example.projectback.board.repository.BoardPostLikeRepository;
 import com.example.projectback.board.repository.BoardPostRepository;
 import com.example.projectback.entity.BoardPost;
 import com.example.projectback.security.CurrentUserProvider;
@@ -19,7 +21,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -28,6 +32,12 @@ class UserBoardActivityServiceTest {
 
     @Mock
     private BoardPostRepository boardPostRepository;
+
+    @Mock
+    private BoardCommentRepository boardCommentRepository;
+
+    @Mock
+    private BoardPostLikeRepository boardPostLikeRepository;
 
     @Mock
     private CurrentUserProvider currentUserProvider;
@@ -46,6 +56,8 @@ class UserBoardActivityServiceTest {
         given(currentUserProvider.getCurrentUserId()).willReturn(userId);
         given(boardPostRepository.findByAuthorId(userId, pageable))
                 .willReturn(new PageImpl<>(List.of(post), pageable, 1));
+        lenient().when(boardCommentRepository.countByPostId(anyLong())).thenReturn(0L);
+        lenient().when(boardPostLikeRepository.countByPostId(anyLong())).thenReturn(0L);
 
         // when
         Page<BoardPostListItemResponse> result = userBoardActivityService.getMyPosts(pageable);
@@ -68,6 +80,8 @@ class UserBoardActivityServiceTest {
         given(currentUserProvider.getCurrentUserId()).willReturn(userId);
         given(boardPostRepository.findCommentedPostsByAuthorId(userId, pageable))
                 .willReturn(new PageImpl<>(List.of(post), pageable, 1));
+        lenient().when(boardCommentRepository.countByPostId(anyLong())).thenReturn(0L);
+        lenient().when(boardPostLikeRepository.countByPostId(anyLong())).thenReturn(0L);
 
         // when
         Page<BoardPostListItemResponse> result = userBoardActivityService.getMyCommentedPosts(pageable);

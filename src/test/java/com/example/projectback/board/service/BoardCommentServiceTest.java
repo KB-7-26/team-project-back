@@ -2,6 +2,7 @@ package com.example.projectback.board.service;
 
 import com.example.projectback.board.dto.BoardCommentCreateRequest;
 import com.example.projectback.board.dto.BoardCommentUpdateRequest;
+import com.example.projectback.board.repository.BoardCommentLikeRepository;
 import com.example.projectback.board.repository.BoardCommentRepository;
 import com.example.projectback.board.repository.BoardPostRepository;
 import com.example.projectback.entity.BoardComment;
@@ -28,6 +29,9 @@ class BoardCommentServiceTest {
 
     @Mock
     private BoardCommentRepository boardCommentRepository;
+
+    @Mock
+    private BoardCommentLikeRepository boardCommentLikeRepository;
 
     @Mock
     private BoardPostRepository boardPostRepository;
