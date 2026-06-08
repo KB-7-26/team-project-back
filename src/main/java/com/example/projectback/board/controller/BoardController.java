@@ -8,7 +8,9 @@ import com.example.projectback.board.dto.BoardPostCreateResponse;
 import com.example.projectback.board.dto.BoardPostDetailResponse;
 import com.example.projectback.board.dto.BoardPostListItemResponse;
 import com.example.projectback.board.dto.BoardPostUpdateRequest;
+import com.example.projectback.board.dto.LikeResponse;
 import com.example.projectback.board.service.BoardCommentService;
+import com.example.projectback.board.service.BoardLikeService;
 import com.example.projectback.board.service.BoardPostService;
 import com.example.projectback.common.ApiResponse;
 import com.example.projectback.security.CurrentUserProvider;
@@ -31,6 +33,7 @@ public class BoardController {
 
     private final BoardPostService boardPostService;
     private final BoardCommentService boardCommentService;
+    private final BoardLikeService boardLikeService;
     private final CurrentUserProvider currentUserProvider;
 
     @GetMapping
@@ -121,5 +124,23 @@ public class BoardController {
         Long userId = currentUserProvider.getCurrentUserId();
         boardCommentService.deleteComment(id, commentId, userId);
         return ResponseEntity.ok(ApiResponse.success("댓글 삭제 성공"));
+    }
+
+    @PostMapping("/{postId}/likes")
+    public ResponseEntity<ApiResponse<LikeResponse>> togglePostLike(@PathVariable Long postId) {
+        Long userId = currentUserProvider.getCurrentUserId();
+        LikeResponse response = boardLikeService.togglePostLike(postId, userId);
+        String message = response.isLiked() ? "게시글 좋아요 추가" : "게시글 좋아요 취소";
+        return ResponseEntity.ok(ApiResponse.success(response, message));
+    }
+
+    @PostMapping("/{postId}/comments/{commentId}/likes")
+    public ResponseEntity<ApiResponse<LikeResponse>> toggleCommentLike(
+            @PathVariable Long postId,
+            @PathVariable Long commentId) {
+        Long userId = currentUserProvider.getCurrentUserId();
+        LikeResponse response = boardLikeService.toggleCommentLike(postId, commentId, userId);
+        String message = response.isLiked() ? "댓글 좋아요 추가" : "댓글 좋아요 취소";
+        return ResponseEntity.ok(ApiResponse.success(response, message));
     }
 }
