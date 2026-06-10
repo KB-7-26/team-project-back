@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -78,37 +79,47 @@ public class ChatRoomService {
         User currentUser = currentUserProvider.getCurrentUser();
         Long userId = currentUser.getId();
 
-        return chatRoomRepository
-                .findByUserIdOrderByLastMessageDesc(userId)
+        List<ChatRoom> rooms = chatRoomRepository.findByUserIdOrderByLastMessageDesc(userId);
+        if (rooms.isEmpty()) return List.of();
+
+        List<Long> roomIds = rooms.stream().map(ChatRoom::getId).toList();
+
+        // 최신 메시지 한 번에 조회
+        Map<Long, String> lastMessageMap = chatMessageRepository
+                .findLatestMessagesByRoomIds(roomIds)
                 .stream()
-                .map(room -> {
-                    // 상대방 = 내가 판매자면 구매자, 내가 구매자면 판매자
-                    User opponent = room.getSeller().getId().equals(userId)
-                            ? room.getBuyer()
-                            : room.getSeller();
+                .collect(java.util.stream.Collectors.toMap(
+                        msg -> msg.getChatRoom().getId(),
+                        msg -> msg.getContent()
+                ));
 
-                    boolean isSeller = room.getSeller().getId().equals(userId);
-                    LocalDateTime myLastReadAt = isSeller ? room.getSellerLastReadAt() : room.getBuyerLastReadAt();
-                    // 상대방의 마지막 읽은 시간 (내 메시지 읽음 표시 기준)
-                    LocalDateTime opponentLastReadAt = isSeller ? room.getBuyerLastReadAt() : room.getSellerLastReadAt();
+        return rooms.stream().map(room -> {
+            User opponent = room.getSeller().getId().equals(userId)
+                    ? room.getBuyer() : room.getSeller();
 
-                    long unread = myLastReadAt == null
-                            ? chatMessageRepository.countByChatRoomIdAndSenderIdNot(room.getId(), userId)
-                            : chatMessageRepository.countByChatRoomIdAndCreatedAtAfterAndSenderIdNot(room.getId(), myLastReadAt, userId);
+            boolean isSeller = room.getSeller().getId().equals(userId);
+            LocalDateTime myLastReadAt = isSeller ? room.getSellerLastReadAt() : room.getBuyerLastReadAt();
+            LocalDateTime opponentLastReadAt = isSeller ? room.getBuyerLastReadAt() : room.getSellerLastReadAt();
 
-                    return new ChatRoomListResponse(
-                            room.getId(),
-                            room.getProduct().getId(),
-                            room.getProduct().getTitle(),
-                            opponent.getId(),
-                            opponent.getNickname(),
-                            room.getLastMessageAt(),
-                            room.getCreatedAt(),
-                            unread,
-                            opponentLastReadAt
-                    );
-                })
-                .toList();
+            // 안 읽은 수 계산 (lastReadAt null인 방은 전체 카운트)
+            long unread = myLastReadAt == null
+                    ? chatMessageRepository.countByChatRoomIdAndSenderIdNot(room.getId(), userId)
+                    : chatMessageRepository.countByChatRoomIdAndCreatedAtAfterAndSenderIdNot(room.getId(), myLastReadAt, userId);
+
+            return new ChatRoomListResponse(
+                    room.getId(),
+                    room.getProduct().getId(),
+                    room.getProduct().getTitle(),
+                    opponent.getId(),
+                    opponent.getNickname(),
+                    room.getLastMessageAt(),
+                    room.getCreatedAt(),
+                    unread,
+                    opponentLastReadAt,
+                    room.getSeller().getId(),
+                    lastMessageMap.getOrDefault(room.getId(), "")
+            );
+        }).toList();
     }
 
     @Transactional

@@ -60,6 +60,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/categories").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/posts", "/api/posts/**").permitAll()
                         .requestMatchers("/ws/**", "/ws").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/transactions", "/api/reviews").hasRole("USER")
                         .anyRequest().hasRole("USER")
                 )
                 .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.sameOrigin()))
