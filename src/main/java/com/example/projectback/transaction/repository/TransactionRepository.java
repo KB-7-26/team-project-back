@@ -32,4 +32,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
             """)
     Page<ProductListResponse> findCompletedPurchaseProductsByBuyerId(@Param("buyerId") Long buyerId,
                                                                      Pageable pageable);
+
+    // 채팅방으로 거래 조회
+    java.util.Optional<Transaction> findByChatRoomId(Long chatRoomId);
 }

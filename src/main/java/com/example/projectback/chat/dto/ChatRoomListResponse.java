@@ -17,5 +17,7 @@ public class ChatRoomListResponse {
     private LocalDateTime lastMessageAt;
     private LocalDateTime createdAt;
     private long unreadCount;
-    private LocalDateTime opponentLastReadAt; // 상대방이 마지막으로 읽은 시간
+    private LocalDateTime opponentLastReadAt;
+    private Long sellerId;
+    private String lastMessage; // 마지막 메시지 내용 미리보기
 }
