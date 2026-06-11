@@ -10,4 +10,6 @@ public interface BoardPostLikeRepository extends JpaRepository<BoardPostLike, Lo
     void deleteByUserIdAndPostId(Long userId, Long postId);
 
     long countByPostId(Long postId);
+
+    void deleteByPostId(Long postId);
 }
