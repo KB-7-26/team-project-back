@@ -10,4 +10,6 @@ public class UserProfileStatsResponse {
     private long activeProductCount;
     private long soldProductCount;
     private long favoriteCount;
+    private long postCount;
+    private long commentCount;
 }

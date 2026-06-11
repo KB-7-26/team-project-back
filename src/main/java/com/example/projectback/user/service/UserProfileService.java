@@ -1,6 +1,8 @@
 package com.example.projectback.user.service;
 
 import com.example.projectback.common.exception.DuplicateResourceException;
+import com.example.projectback.board.repository.BoardCommentRepository;
+import com.example.projectback.board.repository.BoardPostRepository;
 import com.example.projectback.entity.User;
 import com.example.projectback.image.service.ImageStorageService;
 import com.example.projectback.product.repository.ProductFavoriteRepository;
@@ -25,6 +27,8 @@ public class UserProfileService {
     private static final String SALE_STATUS_SOLD = "sold";
 
     private final UserRepository userRepository;
+    private final BoardPostRepository boardPostRepository;
+    private final BoardCommentRepository boardCommentRepository;
     private final ProductRepository productRepository;
     private final ProductFavoriteRepository productFavoriteRepository;
     private final CurrentUserProvider currentUserProvider;
@@ -94,7 +98,9 @@ public class UserProfileService {
         return new UserProfileStatsResponse(
                 productRepository.countBySellerIdAndSaleStatus(userId, SALE_STATUS_AVAILABLE),
                 productRepository.countBySellerIdAndSaleStatus(userId, SALE_STATUS_SOLD),
-                productFavoriteRepository.countByUserId(userId)
+                productFavoriteRepository.countByUserId(userId),
+                boardPostRepository.countByAuthorId(userId),
+                boardCommentRepository.countByAuthorId(userId)
         );
     }
 

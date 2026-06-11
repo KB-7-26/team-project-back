@@ -13,6 +13,8 @@ public interface BoardCommentRepository extends JpaRepository<BoardComment, Long
 
     long countByPostId(Long postId);
 
+    long countByAuthorId(Long authorId);
+
     @Query("SELECT c.id FROM BoardComment c WHERE c.post.id = :postId")
     List<Long> findIdsByPostId(@Param("postId") Long postId);
 
