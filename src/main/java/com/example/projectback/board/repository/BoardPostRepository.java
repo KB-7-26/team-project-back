@@ -14,6 +14,8 @@ public interface BoardPostRepository extends JpaRepository<BoardPost, Long> {
 
     Page<BoardPost> findByAuthorId(Long authorId, Pageable pageable);
 
+    long countByAuthorId(Long authorId);
+
     @Query(
             value = """
                     SELECT p
