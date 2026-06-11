@@ -1,6 +1,7 @@
 package com.example.projectback.board.dto;
 
 import com.example.projectback.entity.BoardPost;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
@@ -14,6 +15,7 @@ public class BoardPostDetailResponse {
     private final Integer viewCount;
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
+    @JsonProperty("isOwner")
     private final boolean isOwner;
     private final boolean liked;
     private final long likeCount;
