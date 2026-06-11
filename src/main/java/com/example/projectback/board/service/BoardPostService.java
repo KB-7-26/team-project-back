@@ -5,6 +5,7 @@ import com.example.projectback.board.dto.BoardPostCreateResponse;
 import com.example.projectback.board.dto.BoardPostDetailResponse;
 import com.example.projectback.board.dto.BoardPostListItemResponse;
 import com.example.projectback.board.dto.BoardPostUpdateRequest;
+import com.example.projectback.board.repository.BoardCommentLikeRepository;
 import com.example.projectback.board.repository.BoardCommentRepository;
 import com.example.projectback.board.repository.BoardPostLikeRepository;
 import com.example.projectback.board.repository.BoardPostRepository;
@@ -31,6 +32,7 @@ public class BoardPostService {
 
     private final BoardPostRepository boardPostRepository;
     private final BoardCommentRepository boardCommentRepository;
+    private final BoardCommentLikeRepository boardCommentLikeRepository;
     private final BoardPostLikeRepository boardPostLikeRepository;
     private final UserRepository userRepository;
 
@@ -120,6 +122,13 @@ public class BoardPostService {
         BoardPost post = getPostOrThrow(postId);
         validateAuthor(post, userId);
 
+        List<Long> commentIds = boardCommentRepository.findIdsByPostId(postId);
+        if (!commentIds.isEmpty()) {
+            boardCommentLikeRepository.deleteByCommentIdIn(commentIds);
+        }
+        boardCommentRepository.deleteRepliesByPostId(postId);
+        boardCommentRepository.deleteParentsByPostId(postId);
+        boardPostLikeRepository.deleteByPostId(postId);
         boardPostRepository.delete(post);
         log.info("게시글 삭제: postId={}, userId={}", postId, userId);
     }

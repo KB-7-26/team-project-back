@@ -10,4 +10,6 @@ public interface BoardCommentLikeRepository extends JpaRepository<BoardCommentLi
     void deleteByUserIdAndCommentId(Long userId, Long commentId);
 
     long countByCommentId(Long commentId);
+
+    void deleteByCommentIdIn(java.util.Collection<Long> commentIds);
 }
