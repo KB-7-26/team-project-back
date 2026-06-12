@@ -10,6 +10,8 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 
     Optional<ChatRoom> findByProductIdAndBuyerId(Long productId, Long buyerId);
 
+    boolean existsByProductIdAndBuyerId(Long productId, Long buyerId);
+
     List<ChatRoom> findBySellerIdOrBuyerIdOrderByCreatedAtDesc(Long sellerId, Long buyerId);
 
     // 최신 메시지 기준 정렬 (lastMessageAt이 없으면 createdAt 기준)
