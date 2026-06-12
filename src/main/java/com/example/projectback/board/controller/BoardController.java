@@ -8,10 +8,12 @@ import com.example.projectback.board.dto.BoardPostCreateResponse;
 import com.example.projectback.board.dto.BoardPostDetailResponse;
 import com.example.projectback.board.dto.BoardPostListItemResponse;
 import com.example.projectback.board.dto.BoardPostUpdateRequest;
+import com.example.projectback.board.dto.BoardReportRequest;
 import com.example.projectback.board.dto.LikeResponse;
 import com.example.projectback.board.service.BoardCommentService;
 import com.example.projectback.board.service.BoardLikeService;
 import com.example.projectback.board.service.BoardPostService;
+import com.example.projectback.board.service.BoardReportService;
 import com.example.projectback.common.ApiResponse;
 import com.example.projectback.security.CurrentUserProvider;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +36,7 @@ public class BoardController {
     private final BoardPostService boardPostService;
     private final BoardCommentService boardCommentService;
     private final BoardLikeService boardLikeService;
+    private final BoardReportService boardReportService;
     private final CurrentUserProvider currentUserProvider;
 
     @GetMapping
@@ -158,5 +161,24 @@ public class BoardController {
         LikeResponse response = boardLikeService.toggleCommentLike(postId, commentId, userId);
         String message = response.isLiked() ? "댓글 좋아요 추가" : "댓글 좋아요 취소";
         return ResponseEntity.ok(ApiResponse.success(response, message));
+    }
+
+    @PostMapping("/{postId}/reports")
+    public ResponseEntity<ApiResponse<Void>> reportPost(
+            @PathVariable Long postId,
+            @Valid @RequestBody BoardReportRequest request) {
+        Long userId = currentUserProvider.getCurrentUserId();
+        boardReportService.reportPost(postId, userId, request.getReason());
+        return ResponseEntity.ok(ApiResponse.success("신고가 접수되었습니다."));
+    }
+
+    @PostMapping("/{postId}/comments/{commentId}/reports")
+    public ResponseEntity<ApiResponse<Void>> reportComment(
+            @PathVariable Long postId,
+            @PathVariable Long commentId,
+            @Valid @RequestBody BoardReportRequest request) {
+        Long userId = currentUserProvider.getCurrentUserId();
+        boardReportService.reportComment(postId, commentId, userId, request.getReason());
+        return ResponseEntity.ok(ApiResponse.success("신고가 접수되었습니다."));
     }
 }
