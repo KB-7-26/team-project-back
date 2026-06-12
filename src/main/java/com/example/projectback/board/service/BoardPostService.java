@@ -25,6 +25,7 @@ import org.springframework.data.domain.PageRequest;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -36,15 +37,23 @@ public class BoardPostService {
     private final BoardPostLikeRepository boardPostLikeRepository;
     private final UserRepository userRepository;
 
+    public static final List<String> CATEGORIES = List.of("자유게시판", "공지", "전공", "비전공", "취업");
+
     @Transactional(readOnly = true)
-    public Page<BoardPostListItemResponse> getPosts(String keyword, String searchType, Pageable pageable) {
+    public List<String> getCategories() {
+        return CATEGORIES;
+    }
+
+    @Transactional(readOnly = true)
+    public Page<BoardPostListItemResponse> getPosts(String keyword, String searchType, String category, Pageable pageable) {
+        String validCategory = (category != null && CATEGORIES.contains(category)) ? category : null;
         Page<BoardPost> page;
         if (keyword == null || keyword.isBlank()) {
-            page = boardPostRepository.findAll(pageable);
+            page = boardPostRepository.findByOptionalCategory(validCategory, pageable);
         } else if ("all".equalsIgnoreCase(searchType)) {
-            page = boardPostRepository.findByTitleOrContentContainingIgnoreCase(keyword, pageable);
+            page = boardPostRepository.findByOptionalCategoryAndTitleOrContent(validCategory, keyword, pageable);
         } else {
-            page = boardPostRepository.findByTitleContainingIgnoreCase(keyword, pageable);
+            page = boardPostRepository.findByOptionalCategoryAndTitle(validCategory, keyword, pageable);
         }
         return page.map(post -> new BoardPostListItemResponse(
                 post,
@@ -94,6 +103,7 @@ public class BoardPostService {
 
         BoardPost post = BoardPost.builder()
                 .author(author)
+                .category(request.getCategory())
                 .title(request.getTitle())
                 .content(request.getContent())
                 .build();
@@ -109,7 +119,7 @@ public class BoardPostService {
         BoardPost post = getPostOrThrow(postId);
         validateAuthor(post, userId);
 
-        post.update(request.getTitle(), request.getContent());
+        post.update(request.getCategory(), request.getTitle(), request.getContent());
         log.info("게시글 수정: postId={}, userId={}", postId, userId);
 
         boolean liked = boardPostLikeRepository.existsByUserIdAndPostId(userId, postId);

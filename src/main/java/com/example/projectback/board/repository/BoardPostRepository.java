@@ -40,16 +40,26 @@ public interface BoardPostRepository extends JpaRepository<BoardPost, Long> {
 
     @Query("""
             SELECT p FROM BoardPost p
-            WHERE LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%'))
+            WHERE (:category IS NULL OR p.category = :category)
             """)
-    Page<BoardPost> findByTitleContainingIgnoreCase(@Param("keyword") String keyword, Pageable pageable);
+    Page<BoardPost> findByOptionalCategory(@Param("category") String category, Pageable pageable);
 
     @Query("""
             SELECT p FROM BoardPost p
-            WHERE LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%'))
-               OR LOWER(p.content) LIKE LOWER(CONCAT('%', :keyword, '%'))
+            WHERE (:category IS NULL OR p.category = :category)
+              AND LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%'))
             """)
-    Page<BoardPost> findByTitleOrContentContainingIgnoreCase(@Param("keyword") String keyword, Pageable pageable);
+    Page<BoardPost> findByOptionalCategoryAndTitle(
+            @Param("category") String category, @Param("keyword") String keyword, Pageable pageable);
+
+    @Query("""
+            SELECT p FROM BoardPost p
+            WHERE (:category IS NULL OR p.category = :category)
+              AND (LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                OR LOWER(p.content) LIKE LOWER(CONCAT('%', :keyword, '%')))
+            """)
+    Page<BoardPost> findByOptionalCategoryAndTitleOrContent(
+            @Param("category") String category, @Param("keyword") String keyword, Pageable pageable);
 
     @Query("""
             SELECT p FROM BoardPost p

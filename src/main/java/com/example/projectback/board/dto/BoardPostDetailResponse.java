@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 @Getter
 public class BoardPostDetailResponse {
     private final Long id;
+    private final String category;
     private final String title;
     private final String content;
     private final String displayName;
@@ -22,6 +23,7 @@ public class BoardPostDetailResponse {
 
     public BoardPostDetailResponse(BoardPost post, Long currentUserId, boolean liked, long likeCount) {
         this.id = post.getId();
+        this.category = post.getCategory();
         this.title = post.getTitle();
         this.content = post.getContent();
         this.displayName = "익명";

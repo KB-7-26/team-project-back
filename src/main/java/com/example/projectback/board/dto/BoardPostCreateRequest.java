@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class BoardPostCreateRequest {
+    private String category;
     private String title;
     private String content;
 }
