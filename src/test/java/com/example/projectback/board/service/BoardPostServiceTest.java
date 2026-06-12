@@ -78,10 +78,10 @@ class BoardPostServiceTest {
                 .build();
 
         Pageable pageable = PageRequest.of(0, 10, Sort.by("createdAt").descending());
-        given(boardPostRepository.findAll(pageable)).willReturn(new PageImpl<>(List.of(post)));
+        given(boardPostRepository.findByOptionalCategory(null, pageable)).willReturn(new PageImpl<>(List.of(post)));
 
         // when
-        Page<BoardPostListItemResponse> result = boardPostService.getPosts(null, "title", pageable);
+        Page<BoardPostListItemResponse> result = boardPostService.getPosts(null, "title", null, pageable);
 
         // then
         assertThat(result.getContent()).hasSize(1);
@@ -94,10 +94,10 @@ class BoardPostServiceTest {
     void getPosts_empty_returnsEmptyPage() {
         // given
         Pageable pageable = PageRequest.of(0, 10, Sort.by("createdAt").descending());
-        given(boardPostRepository.findAll(pageable)).willReturn(Page.empty());
+        given(boardPostRepository.findByOptionalCategory(null, pageable)).willReturn(Page.empty());
 
         // when
-        Page<BoardPostListItemResponse> result = boardPostService.getPosts(null, "title", pageable);
+        Page<BoardPostListItemResponse> result = boardPostService.getPosts(null, "title", null, pageable);
 
         // then
         assertThat(result.getContent()).isEmpty();
@@ -214,7 +214,7 @@ class BoardPostServiceTest {
     @DisplayName("게시글 등록 성공")
     void createPost_success() {
         // given
-        BoardPostCreateRequest request = new BoardPostCreateRequest("테스트 제목", "테스트 내용");
+        BoardPostCreateRequest request = new BoardPostCreateRequest(null, "테스트 제목", "테스트 내용");
 
         given(userRepository.findById(1L)).willReturn(Optional.of(mockUser));
         given(boardPostRepository.save(any(BoardPost.class))).willAnswer(invocation -> invocation.getArgument(0));
@@ -231,7 +231,7 @@ class BoardPostServiceTest {
     @DisplayName("존재하지 않는 userId로 게시글 등록 시 예외 발생")
     void createPost_userNotFound() {
         // given
-        BoardPostCreateRequest request = new BoardPostCreateRequest("제목", "내용");
+        BoardPostCreateRequest request = new BoardPostCreateRequest(null, "제목", "내용");
         given(userRepository.findById(999L)).willReturn(Optional.empty());
 
         // when & then
@@ -255,7 +255,7 @@ class BoardPostServiceTest {
                 .content("기존 내용")
                 .build();
 
-        BoardPostUpdateRequest request = new BoardPostUpdateRequest("수정 제목", "수정 내용");
+        BoardPostUpdateRequest request = new BoardPostUpdateRequest(null, "수정 제목", "수정 내용");
         given(boardPostRepository.findById(1L)).willReturn(Optional.of(post));
 
         // when
@@ -280,7 +280,7 @@ class BoardPostServiceTest {
                 .content("내용")
                 .build();
 
-        BoardPostUpdateRequest request = new BoardPostUpdateRequest("수정 제목", "수정 내용");
+        BoardPostUpdateRequest request = new BoardPostUpdateRequest(null, "수정 제목", "수정 내용");
         given(boardPostRepository.findById(1L)).willReturn(Optional.of(post));
 
         // when & then

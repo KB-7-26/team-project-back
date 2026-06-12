@@ -22,6 +22,9 @@ public class BoardPost {
     private User author;
 
     @Column(nullable = false)
+    private String category;
+
+    @Column(nullable = false)
     private String title;
 
     @Column(nullable = false, columnDefinition = "TEXT")
@@ -36,14 +39,16 @@ public class BoardPost {
     private LocalDateTime updatedAt;
 
     @Builder
-    private BoardPost(User author, String title, String content) {
+    private BoardPost(User author, String category, String title, String content) {
         this.author = author;
+        this.category = category != null ? category : "자유게시판";
         this.title = title;
         this.content = content;
         this.viewCount = 0;
     }
 
-    public void update(String title, String content) {
+    public void update(String category, String title, String content) {
+        this.category = category != null ? category : this.category;
         this.title = title;
         this.content = content;
     }

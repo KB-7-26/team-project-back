@@ -39,15 +39,21 @@ public class BoardController {
     private final BoardReportService boardReportService;
     private final CurrentUserProvider currentUserProvider;
 
+    @GetMapping("/categories")
+    public ResponseEntity<ApiResponse<List<String>>> getCategories() {
+        return ResponseEntity.ok(ApiResponse.success(boardPostService.getCategories(), "카테고리 목록 조회 성공"));
+    }
+
     @GetMapping
     public ResponseEntity<ApiResponse<Page<BoardPostListItemResponse>>> getPosts(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String keyword,
-            @RequestParam(defaultValue = "title") String searchType) {
+            @RequestParam(defaultValue = "title") String searchType,
+            @RequestParam(required = false) String category) {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        Page<BoardPostListItemResponse> response = boardPostService.getPosts(keyword, searchType, pageable);
+        Page<BoardPostListItemResponse> response = boardPostService.getPosts(keyword, searchType, category, pageable);
         return ResponseEntity.ok(ApiResponse.success(response, "게시글 목록 조회 성공"));
     }
 
