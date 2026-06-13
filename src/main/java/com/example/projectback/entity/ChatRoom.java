@@ -1,6 +1,8 @@
 package com.example.projectback.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
@@ -9,6 +11,8 @@ import java.time.LocalDateTime;
 @Table(name = "chat_rooms")
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class ChatRoom {
 
     @Id
@@ -37,6 +41,15 @@ public class ChatRoom {
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
+
+    public void updateLastReadAt(boolean isSeller) {
+        if (isSeller) this.sellerLastReadAt = LocalDateTime.now();
+        else this.buyerLastReadAt = LocalDateTime.now();
+    }
+
+    public void updateLastMessageAt() {
+        this.lastMessageAt = LocalDateTime.now();
+    }
 
     @PrePersist
     protected void onCreate() {

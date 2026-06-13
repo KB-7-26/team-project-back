@@ -1,6 +1,8 @@
 package com.example.projectback.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
@@ -9,6 +11,8 @@ import java.time.LocalDateTime;
 @Table(name = "transactions")
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Transaction {
 
     @Id
@@ -38,6 +42,11 @@ public class Transaction {
     private LocalDateTime createdAt;
 
     private LocalDateTime completedAt;
+
+    public void complete() {
+        this.status = "completed";
+        this.completedAt = LocalDateTime.now();
+    }
 
     @PrePersist
     protected void onCreate() {

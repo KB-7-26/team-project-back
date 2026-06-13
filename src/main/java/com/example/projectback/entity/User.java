@@ -1,6 +1,8 @@
 package com.example.projectback.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
@@ -9,6 +11,8 @@ import java.time.LocalDateTime;
 @Table(name = "users")
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class User {
 
     @Id
@@ -16,33 +20,30 @@ public class User {
     private Long id;
 
     @Column(nullable = false, unique = true)
-    private String loginId;
-
-    @Column(nullable = false)
-    private String password;
+    private String firebaseUid;
 
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String nickname;
 
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(unique = true)
-    private String phoneNumber;
-
     private String profileImageUrl;
 
+    @Column(nullable = false)
     private String cohort;
 
-    @Column(length = 1)
+    @Column(nullable = false, length = 1)
     private String gender;
 
+    @Builder.Default
     @Column(nullable = false)
     private Integer trustScore = 0;
 
+    @Builder.Default
     @Column(nullable = false)
     private Boolean isVerified = false;
 
@@ -52,5 +53,19 @@ public class User {
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
+    }
+
+    public void updateProfile(String nickname, String cohort, String gender) {
+        this.nickname = nickname;
+        this.cohort = cohort;
+        this.gender = gender;
+    }
+
+    public void updateNickname(String nickname) {
+        this.nickname = nickname;
+    }
+
+    public void updateProfileImageUrl(String profileImageUrl) {
+        this.profileImageUrl = profileImageUrl;
     }
 }

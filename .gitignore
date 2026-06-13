@@ -61,5 +61,11 @@ out/
 hs_err_pid*
 replay_pid*
 
+# dummy data
+dummy_data.sql
+
 # application.yaml
 src/main/resources/application.yaml
+
+# Claude Code
+.claude/

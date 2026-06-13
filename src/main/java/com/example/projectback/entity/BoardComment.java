@@ -1,14 +1,18 @@
 package com.example.projectback.entity;
 
 import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "board_comments")
 @Getter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class BoardComment {
 
     @Id
@@ -27,6 +31,9 @@ public class BoardComment {
     @JoinColumn(name = "parent_comment_id")
     private BoardComment parentComment;
 
+    @OneToMany(mappedBy = "parentComment", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<BoardComment> replies = new ArrayList<>();
+
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
@@ -34,6 +41,18 @@ public class BoardComment {
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
+
+    @Builder
+    private BoardComment(BoardPost post, User author, BoardComment parentComment, String content) {
+        this.post = post;
+        this.author = author;
+        this.parentComment = parentComment;
+        this.content = content;
+    }
+
+    public void update(String content) {
+        this.content = content;
+    }
 
     @PrePersist
     protected void onCreate() {
