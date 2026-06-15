@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface BoardPostRepository extends JpaRepository<BoardPost, Long> {
@@ -66,6 +67,17 @@ public interface BoardPostRepository extends JpaRepository<BoardPost, Long> {
             ORDER BY (SELECT COUNT(l) FROM BoardPostLike l WHERE l.post.id = p.id) DESC, p.createdAt DESC
             """)
     List<BoardPost> findTopByLikeCount(Pageable pageable);
+
+    @Query("""
+            SELECT p FROM BoardPost p
+            WHERE p.createdAt >= :since
+            ORDER BY (
+                p.viewCount * 1
+                + (SELECT COUNT(l) FROM BoardPostLike l WHERE l.post.id = p.id) * 5
+                + (SELECT COUNT(c) FROM BoardComment c WHERE c.post.id = p.id) * 10
+            ) DESC, p.createdAt DESC
+            """)
+    List<BoardPost> findTopByScore(@Param("since") LocalDateTime since, Pageable pageable);
 
     List<BoardPost> findAllByOrderByViewCountDescCreatedAtDesc(Pageable pageable);
 
