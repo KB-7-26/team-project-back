@@ -27,6 +27,10 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import org.mockito.ArgumentCaptor;
+
+import java.time.LocalDateTime;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
@@ -323,5 +327,49 @@ class BoardPostServiceTest {
         assertThatThrownBy(() -> boardPostService.deletePost(999L, 1L))
                 .isInstanceOf(NoSuchElementException.class)
                 .hasMessage("게시글을 찾을 수 없습니다.");
+    }
+
+    // ── getPopularPosts ───────────────────────────────────────
+
+    @Test
+    @DisplayName("인기글 조회 - 점수 공식 쿼리(findTopByScore)를 호출하고 결과를 반환")
+    void getPopularPosts_usesScoreQuery() {
+        // given
+        User author = mock(User.class);
+        BoardPost post = BoardPost.builder()
+                .author(author)
+                .title("인기글")
+                .content("내용")
+                .build();
+
+        given(boardPostRepository.findTopByScore(any(LocalDateTime.class), any(Pageable.class)))
+                .willReturn(List.of(post));
+
+        // when
+        List<BoardPostListItemResponse> result = boardPostService.getPopularPosts(10);
+
+        // then
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getTitle()).isEqualTo("인기글");
+        verify(boardPostRepository).findTopByScore(any(LocalDateTime.class), any(Pageable.class));
+    }
+
+    @Test
+    @DisplayName("인기글 조회 - 7일 이내 기준 날짜를 전달하고 limit 크기로 Pageable 요청")
+    void getPopularPosts_passes7DaysAgoAndCorrectLimit() {
+        // given
+        given(boardPostRepository.findTopByScore(any(LocalDateTime.class), any(Pageable.class)))
+                .willReturn(List.of());
+
+        // when
+        boardPostService.getPopularPosts(20);
+
+        // then
+        ArgumentCaptor<LocalDateTime> sinceCaptor = ArgumentCaptor.forClass(LocalDateTime.class);
+        ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
+        verify(boardPostRepository).findTopByScore(sinceCaptor.capture(), pageableCaptor.capture());
+
+        assertThat(sinceCaptor.getValue()).isAfter(LocalDateTime.now().minusDays(7).minusSeconds(5));
+        assertThat(pageableCaptor.getValue().getPageSize()).isEqualTo(20);
     }
 }
