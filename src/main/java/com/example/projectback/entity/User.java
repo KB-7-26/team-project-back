@@ -68,4 +68,8 @@ public class User {
     public void updateProfileImageUrl(String profileImageUrl) {
         this.profileImageUrl = profileImageUrl;
     }
+
+    public void verify() {
+        this.isVerified = true;
+    }
 }
