@@ -1,0 +1,35 @@
+spring:
+  config:
+    import: "optional:file:.env[.properties]"
+  application:
+    name: project-back
+  datasource:
+    url: "${SPRING_DATASOURCE_URL:jdbc:mysql://127.0.0.1:3306/kb_project?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8}"
+    username: "${SPRING_DATASOURCE_USERNAME:root}"
+    password: "${SPRING_DATASOURCE_PASSWORD:}"
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: "${SPRING_JPA_HIBERNATE_DDL_AUTO:update}"
+    show-sql: "${SPRING_JPA_SHOW_SQL:true}"
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+
+server:
+  port: "${SERVER_PORT:8080}"
+  servlet:
+    session:
+      persistent: false
+
+firebase:
+  service-account-path: "${FIREBASE_SERVICE_ACCOUNT_PATH:}"
+  service-account-json: "${FIREBASE_SERVICE_ACCOUNT_JSON:}"
+
+image:
+  upload-dir: "${IMAGE_UPLOAD_DIR:./uploads}"
+  base-url: "${IMAGE_BASE_URL:http://localhost:8080}"
+
+app:
+  cors:
+    allowed-origin-patterns: "${APP_CORS_ALLOWED_ORIGIN_PATTERNS:http://localhost:*,http://127.0.0.1:*}"

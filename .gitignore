@@ -64,8 +64,13 @@ replay_pid*
 # dummy data
 dummy_data.sql
 
-# application.yaml
-src/main/resources/application.yaml
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Uploaded files
+uploads/
 
 # Claude Code
 .claude/

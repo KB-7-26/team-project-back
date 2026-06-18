@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import org.springframework.data.domain.PageRequest;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -64,7 +65,8 @@ public class BoardPostService {
 
     @Transactional(readOnly = true)
     public List<BoardPostListItemResponse> getPopularPosts(int limit) {
-        return boardPostRepository.findTopByLikeCount(PageRequest.of(0, limit))
+        LocalDateTime since = LocalDateTime.now().minusDays(7);
+        return boardPostRepository.findTopByScore(since, PageRequest.of(0, limit))
                 .stream()
                 .map(post -> new BoardPostListItemResponse(
                         post,
