@@ -1,16 +1,11 @@
 package com.example.projectback.board.service;
 
-import com.example.projectback.board.dto.BoardPostCreateRequest;
-import com.example.projectback.board.dto.BoardPostCreateResponse;
-import com.example.projectback.board.dto.BoardPostDetailResponse;
-import com.example.projectback.board.dto.BoardPostListItemResponse;
-import com.example.projectback.board.dto.BoardPostUpdateRequest;
-import com.example.projectback.board.repository.BoardCommentLikeRepository;
-import com.example.projectback.board.repository.BoardCommentRepository;
-import com.example.projectback.board.repository.BoardPostLikeRepository;
-import com.example.projectback.board.repository.BoardPostRepository;
+import com.example.projectback.board.dto.*;
+import com.example.projectback.board.repository.*;
 import com.example.projectback.entity.BoardPost;
+import com.example.projectback.entity.BoardPostImage;
 import com.example.projectback.entity.User;
+import com.example.projectback.image.service.ImageStorageService;
 import com.example.projectback.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,8 +16,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import org.springframework.data.domain.PageRequest;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -37,6 +34,8 @@ public class BoardPostService {
     private final BoardCommentLikeRepository boardCommentLikeRepository;
     private final BoardPostLikeRepository boardPostLikeRepository;
     private final UserRepository userRepository;
+    private final BoardPostImageRepository boardPostImageRepository;
+    private final ImageStorageService imageStorageService;
 
     public static final List<String> CATEGORIES = List.of("자유게시판", "공지", "전공", "비전공", "취업");
 
@@ -95,7 +94,10 @@ public class BoardPostService {
         BoardPost post = getPostOrThrow(postId);
         boolean liked = currentUserId != null && boardPostLikeRepository.existsByUserIdAndPostId(currentUserId, postId);
         long likeCount = boardPostLikeRepository.countByPostId(postId);
-        return new BoardPostDetailResponse(post, currentUserId, liked, likeCount);
+        List<BoardPostImageResponse> images = boardPostImageRepository.findByPostIdOrderByCreatedAtAsc(postId)
+                .stream()
+                .map(i -> new BoardPostImageResponse(i.getId(), i.getImageUrl())).toList();
+        return new BoardPostDetailResponse(post, currentUserId, liked, likeCount, images);
     }
 
     @Transactional
@@ -126,13 +128,24 @@ public class BoardPostService {
 
         boolean liked = boardPostLikeRepository.existsByUserIdAndPostId(userId, postId);
         long likeCount = boardPostLikeRepository.countByPostId(postId);
-        return new BoardPostDetailResponse(post, userId, liked, likeCount);
+        List<BoardPostImageResponse> images = boardPostImageRepository.findByPostIdOrderByCreatedAtAsc(postId)
+                .stream()
+                .map(i -> new
+                        BoardPostImageResponse(i.getId(), i.getImageUrl()))
+                .toList();
+        return new BoardPostDetailResponse(post, userId, liked, likeCount, images);
     }
 
     @Transactional
     public void deletePost(Long postId, Long userId) {
         BoardPost post = getPostOrThrow(postId);
         validateAuthor(post, userId);
+
+        List<BoardPostImage> images =
+                boardPostImageRepository.findByPostId(postId);
+        for (BoardPostImage image : images) {
+            imageStorageService.delete(image.getImageUrl());
+        }
 
         List<Long> commentIds = boardCommentRepository.findIdsByPostId(postId);
         if (!commentIds.isEmpty()) {
@@ -141,6 +154,7 @@ public class BoardPostService {
         boardCommentRepository.deleteRepliesByPostId(postId);
         boardCommentRepository.deleteParentsByPostId(postId);
         boardPostLikeRepository.deleteByPostId(postId);
+        boardPostImageRepository.deleteAll(images);
         boardPostRepository.delete(post);
         log.info("게시글 삭제: postId={}, userId={}", postId, userId);
     }
@@ -156,4 +170,42 @@ public class BoardPostService {
             throw new AccessDeniedException("게시글 수정/삭제 권한이 없습니다.");
         }
     }
+
+    @Transactional
+    public List<BoardPostImageResponse> uploadImages(Long
+                                                             postId, Long userId, List<MultipartFile> files) {
+        BoardPost post = getPostOrThrow(postId);
+        validateAuthor(post, userId);
+
+        int currentCount =
+                boardPostImageRepository.countByPostId(postId);
+        if (currentCount + files.size() > 5) {
+            throw new IllegalArgumentException("이미지는 최대 5장까지 업로드 가능합니다.");
+        }
+
+        List<BoardPostImageResponse> responses = new ArrayList<>();
+        for (MultipartFile file : files) {
+            String imageUrl = imageStorageService.store(file);
+            BoardPostImage image =
+                    BoardPostImage.builder()
+                            .post(post)
+                            .imageUrl(imageUrl)
+                            .build();
+            BoardPostImage saved = boardPostImageRepository.save(image);
+            responses.add(new BoardPostImageResponse(saved.getId(), saved.getImageUrl()));
+        }
+        return responses;
+    }
+
+    @Transactional
+    public void deleteImage(Long postId, Long imageId, Long userId) {
+        BoardPost post = getPostOrThrow(postId);
+        validateAuthor(post, userId);
+
+        BoardPostImage image = boardPostImageRepository.findByIdAndPostId(imageId, postId)
+                        .orElseThrow(() -> new NoSuchElementException("이미지를 찾을 수 없습니다."));
+        imageStorageService.delete(image.getImageUrl());
+        boardPostImageRepository.delete(image);
+    }
+
 }
