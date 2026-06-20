@@ -54,10 +54,12 @@ jobs:
             SPRING_DATASOURCE_URL=${{ secrets.DB_URL }}
             SPRING_DATASOURCE_USERNAME=${{ secrets.DB_USERNAME }}
             SPRING_DATASOURCE_PASSWORD=${{ secrets.DB_PASSWORD }}
+            SPRING_JPA_HIBERNATE_DDL_AUTO=${{ secrets.SPRING_JPA_HIBERNATE_DDL_AUTO }}
+            SPRING_JPA_SHOW_SQL=${{ secrets.SPRING_JPA_SHOW_SQL }}
             FIREBASE_SERVICE_ACCOUNT_JSON=${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
             IMAGE_UPLOAD_DIR=${{ secrets.IMAGE_UPLOAD_DIR }}
             IMAGE_BASE_URL=${{ secrets.IMAGE_BASE_URL }}
-            FRONTEND_ORIGINS=${{ secrets.FRONTEND_ORIGINS }}
+            APP_CORS_ALLOWED_ORIGIN_PATTERNS=${{ secrets.APP_CORS_ALLOWED_ORIGIN_PATTERNS }}
             EOF
 
             chmod 600 /opt/project-back/backend.env
