@@ -10,8 +10,11 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface BoardPostRepository extends JpaRepository<BoardPost, Long> {
+
+    Optional<BoardPost> findFirstByIsPinnedTrue();
 
     Page<BoardPost> findByAuthorId(Long authorId, Pageable pageable);
 
