@@ -11,4 +11,5 @@ public class BoardPostUpdateRequest {
     private String category;
     private String title;
     private String content;
+    private boolean isPinned;
 }

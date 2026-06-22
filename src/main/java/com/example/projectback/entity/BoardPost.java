@@ -38,19 +38,24 @@ public class BoardPost {
 
     private LocalDateTime updatedAt;
 
+    @Column(nullable = false)
+    private boolean isPinned;
+
     @Builder
-    private BoardPost(User author, String category, String title, String content) {
+    private BoardPost(User author, String category, String title, String content, boolean isPinned) {
         this.author = author;
         this.category = category != null ? category : "자유게시판";
         this.title = title;
         this.content = content;
         this.viewCount = 0;
+        this.isPinned = isPinned;
     }
 
-    public void update(String category, String title, String content) {
+    public void update(String category, String title, String content, boolean isPinned) {
         this.category = category != null ? category : this.category;
         this.title = title;
         this.content = content;
+        this.isPinned = isPinned;
     }
 
     @PrePersist
