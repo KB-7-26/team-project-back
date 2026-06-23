@@ -115,6 +115,11 @@ GitHub Secrets 또는 배포 플랫폼 환경변수에는 `.env.example`의 키 
 | `SPRING_JPA_HIBERNATE_DDL_AUTO` | 운영에서는 보통 `validate` 또는 `none` 권장 |
 | `SPRING_JPA_SHOW_SQL` | 운영에서는 보통 `false` 권장 |
 | `FIREBASE_SERVICE_ACCOUNT_JSON` | Firebase Admin SDK 서비스 계정 JSON. raw JSON 한 줄 또는 base64 문자열 사용 가능 |
-| `IMAGE_UPLOAD_DIR` | 업로드 파일 저장 경로 |
-| `IMAGE_BASE_URL` | 업로드 파일을 외부에서 접근할 public base URL |
+| `STORAGE_TYPE` | 로컬은 `local`, 배포는 `s3` |
+| `IMAGE_UPLOAD_DIR` | `STORAGE_TYPE=local`일 때 업로드 파일 저장 경로 |
+| `IMAGE_BASE_URL` | `STORAGE_TYPE=local`일 때 업로드 파일 public base URL |
+| `AWS_REGION` | `STORAGE_TYPE=s3`일 때 AWS 리전 |
+| `S3_BUCKET_NAME` | `STORAGE_TYPE=s3`일 때 업로드 파일을 저장할 S3 bucket |
+| `S3_OBJECT_PREFIX` | `STORAGE_TYPE=s3`일 때 object key prefix |
+| `S3_PUBLIC_BASE_URL` | `STORAGE_TYPE=s3`일 때 CloudFront 또는 S3 public base URL |
 | `APP_CORS_ALLOWED_ORIGIN_PATTERNS` | 프론트 배포 도메인. 여러 개면 comma로 구분 |

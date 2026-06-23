@@ -30,6 +30,17 @@ image:
   upload-dir: "${IMAGE_UPLOAD_DIR:./uploads}"
   base-url: "${IMAGE_BASE_URL:http://localhost:8080}"
 
+storage:
+  type: "${STORAGE_TYPE:local}"
+
+aws:
+  region: "${AWS_REGION:ap-northeast-2}"
+
+s3:
+  bucket-name: "${S3_BUCKET_NAME:}"
+  object-prefix: "${S3_OBJECT_PREFIX:uploads}"
+  public-base-url: "${S3_PUBLIC_BASE_URL:}"
+
 app:
   cors:
     allowed-origin-patterns: "${APP_CORS_ALLOWED_ORIGIN_PATTERNS:http://localhost:*,http://127.0.0.1:*}"
