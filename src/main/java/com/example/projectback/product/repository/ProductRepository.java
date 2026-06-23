@@ -12,6 +12,8 @@ import java.util.List;
 
 public interface ProductRepository extends JpaRepository<Product, Long> {
 
+    long countBySellerId(Long sellerId);
+
     long countBySellerIdAndSaleStatus(Long sellerId, String saleStatus);
 
     @Query(value = """
