@@ -88,6 +88,10 @@ public interface BoardPostRepository extends JpaRepository<BoardPost, Long> {
     @Query("UPDATE BoardPost p SET p.viewCount = p.viewCount + 1 WHERE p.id = :id")
     void incrementViewCount(@Param("id") Long id);
 
+    @Modifying(clearAutomatically = true)
+    @Query("UPDATE BoardPost p SET p.isPinned = false WHERE p.isPinned = true")
+    void unpinAll();
+
     @Query("SELECT p.id FROM BoardPost p WHERE p.author.id = :authorId")
     List<Long> findIdsByAuthorId(@Param("authorId") Long authorId);
 }

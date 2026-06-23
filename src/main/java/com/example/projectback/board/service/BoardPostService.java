@@ -115,6 +115,10 @@ public class BoardPostService {
         User author = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
 
+        if (request.isPinned()) {
+            boardPostRepository.unpinAll();
+        }
+
         BoardPost post = BoardPost.builder()
                 .author(author)
                 .category(request.getCategory())
@@ -133,6 +137,10 @@ public class BoardPostService {
     public BoardPostDetailResponse updatePost(Long postId, Long userId, BoardPostUpdateRequest request) {
         BoardPost post = getPostOrThrow(postId);
         validateAuthor(post, userId);
+
+        if (request.isPinned()) {
+            boardPostRepository.unpinAll();
+        }
 
         post.update(request.getCategory(), request.getTitle(), request.getContent(), request.isPinned());
         log.info("게시글 수정: postId={}, userId={}", postId, userId);
