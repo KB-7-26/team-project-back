@@ -6,8 +6,10 @@ import com.example.projectback.board.dto.BoardPostDetailResponse;
 import com.example.projectback.board.dto.BoardPostListItemResponse;
 import com.example.projectback.board.dto.BoardPostUpdateRequest;
 import com.example.projectback.board.repository.BoardCommentLikeRepository;
+import com.example.projectback.board.repository.BoardCommentReportRepository;
 import com.example.projectback.board.repository.BoardCommentRepository;
 import com.example.projectback.board.repository.BoardPostLikeRepository;
+import com.example.projectback.board.repository.BoardPostReportRepository;
 import com.example.projectback.board.repository.BoardPostRepository;
 import com.example.projectback.entity.BoardPost;
 import com.example.projectback.entity.User;
@@ -35,7 +37,9 @@ public class BoardPostService {
     private final BoardPostRepository boardPostRepository;
     private final BoardCommentRepository boardCommentRepository;
     private final BoardCommentLikeRepository boardCommentLikeRepository;
+    private final BoardCommentReportRepository boardCommentReportRepository;
     private final BoardPostLikeRepository boardPostLikeRepository;
+    private final BoardPostReportRepository boardPostReportRepository;
     private final UserRepository userRepository;
 
     public static final List<String> CATEGORIES = List.of("자유게시판", "공지", "전공", "비전공", "취업");
@@ -88,14 +92,6 @@ public class BoardPostService {
                 .toList();
     }
 
-    @Transactional(readOnly = true)
-    public BoardPostDetailResponse getPinnedPost() {
-        BoardPost post = boardPostRepository.findFirstByIsPinnedTrue()
-                .orElseThrow(() -> new NoSuchElementException("핀된 공지글이 없습니다."));
-        long likeCount = boardPostLikeRepository.countByPostId(post.getId());
-        return new BoardPostDetailResponse(post, null, false, likeCount);
-    }
-
     @Transactional
     public BoardPostDetailResponse getPostDetail(Long postId, Long currentUserId) {
         getPostOrThrow(postId);
@@ -116,7 +112,6 @@ public class BoardPostService {
                 .category(request.getCategory())
                 .title(request.getTitle())
                 .content(request.getContent())
-                .isPinned(request.isPinned())
                 .build();
 
         boardPostRepository.save(post);
@@ -130,7 +125,7 @@ public class BoardPostService {
         BoardPost post = getPostOrThrow(postId);
         validateAuthor(post, userId);
 
-        post.update(request.getCategory(), request.getTitle(), request.getContent(), request.isPinned());
+        post.update(request.getCategory(), request.getTitle(), request.getContent());
         log.info("게시글 수정: postId={}, userId={}", postId, userId);
 
         boolean liked = boardPostLikeRepository.existsByUserIdAndPostId(userId, postId);
@@ -152,6 +147,23 @@ public class BoardPostService {
         boardPostLikeRepository.deleteByPostId(postId);
         boardPostRepository.delete(post);
         log.info("게시글 삭제: postId={}, userId={}", postId, userId);
+    }
+
+    @Transactional
+    public void adminDeletePost(Long postId) {
+        BoardPost post = getPostOrThrow(postId);
+
+        List<Long> commentIds = boardCommentRepository.findIdsByPostId(postId);
+        if (!commentIds.isEmpty()) {
+            boardCommentLikeRepository.deleteByCommentIdIn(commentIds);
+            boardCommentReportRepository.deleteByCommentIdIn(commentIds);
+        }
+        boardCommentRepository.deleteRepliesByPostId(postId);
+        boardCommentRepository.deleteParentsByPostId(postId);
+        boardPostLikeRepository.deleteByPostId(postId);
+        boardPostReportRepository.deleteByPostId(postId);
+        boardPostRepository.delete(post);
+        log.info("관리자 게시글 삭제: postId={}", postId);
     }
 
     private BoardPost getPostOrThrow(Long postId) {
