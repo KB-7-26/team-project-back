@@ -6,6 +6,7 @@ import com.example.projectback.board.dto.BoardCommentUpdateRequest;
 import com.example.projectback.board.dto.BoardPostCreateRequest;
 import com.example.projectback.board.dto.BoardPostCreateResponse;
 import com.example.projectback.board.dto.BoardPostDetailResponse;
+import com.example.projectback.board.dto.BoardPostImageResponse;
 import com.example.projectback.board.dto.BoardPostListItemResponse;
 import com.example.projectback.board.dto.BoardPostUpdateRequest;
 import com.example.projectback.board.dto.BoardReportRequest;
@@ -21,10 +22,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import jakarta.validation.Valid;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -167,6 +170,24 @@ public class BoardController {
         LikeResponse response = boardLikeService.toggleCommentLike(postId, commentId, userId);
         String message = response.isLiked() ? "댓글 좋아요 추가" : "댓글 좋아요 취소";
         return ResponseEntity.ok(ApiResponse.success(response, message));
+    }
+
+    @PostMapping(value = "/{postId}/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<List<BoardPostImageResponse>>> uploadImages(
+            @PathVariable Long postId,
+            @RequestPart("images") List<MultipartFile> files) {
+        Long userId = currentUserProvider.getCurrentUserId();
+        List<BoardPostImageResponse> response = boardPostService.uploadImages(postId, userId, files);
+        return ResponseEntity.ok(ApiResponse.success(response, "이미지 업로드 성공"));
+    }
+
+    @DeleteMapping("/{postId}/images/{imageId}")
+    public ResponseEntity<ApiResponse<Void>> deleteImage(
+            @PathVariable Long postId,
+            @PathVariable Long imageId) {
+        Long userId = currentUserProvider.getCurrentUserId();
+        boardPostService.deleteImage(postId, imageId, userId);
+        return ResponseEntity.ok(ApiResponse.success("이미지 삭제 성공"));
     }
 
     @PostMapping("/{postId}/reports")
