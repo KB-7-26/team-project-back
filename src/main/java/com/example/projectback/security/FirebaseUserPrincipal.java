@@ -1,6 +1,7 @@
 package com.example.projectback.security;
 
 import com.example.projectback.entity.User;
+import com.example.projectback.entity.UserRole;
 import com.google.firebase.auth.FirebaseToken;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -35,9 +36,15 @@ public class FirebaseUserPrincipal {
     }
 
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        if (hasCompletedProfile()) {
-            return List.of(new SimpleGrantedAuthority("ROLE_USER"));
+        if (!hasCompletedProfile()) {
+            return List.of(new SimpleGrantedAuthority("ROLE_PENDING_USER"));
         }
-        return List.of(new SimpleGrantedAuthority("ROLE_PENDING_USER"));
+        if (user.getRole() == UserRole.ADMIN) {
+            return List.of(
+                    new SimpleGrantedAuthority("ROLE_ADMIN"),
+                    new SimpleGrantedAuthority("ROLE_USER")
+            );
+        }
+        return List.of(new SimpleGrantedAuthority("ROLE_USER"));
     }
 }

@@ -372,4 +372,5 @@ class BoardPostServiceTest {
         assertThat(sinceCaptor.getValue()).isAfter(LocalDateTime.now().minusDays(7).minusSeconds(5));
         assertThat(pageableCaptor.getValue().getPageSize()).isEqualTo(20);
     }
+
 }
