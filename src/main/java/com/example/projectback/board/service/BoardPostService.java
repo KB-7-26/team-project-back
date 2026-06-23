@@ -92,14 +92,6 @@ public class BoardPostService {
                 .toList();
     }
 
-    @Transactional(readOnly = true)
-    public BoardPostDetailResponse getPinnedPost() {
-        BoardPost post = boardPostRepository.findFirstByIsPinnedTrue()
-                .orElseThrow(() -> new NoSuchElementException("핀된 공지글이 없습니다."));
-        long likeCount = boardPostLikeRepository.countByPostId(post.getId());
-        return new BoardPostDetailResponse(post, null, false, likeCount);
-    }
-
     @Transactional
     public BoardPostDetailResponse getPostDetail(Long postId, Long currentUserId) {
         getPostOrThrow(postId);
@@ -115,16 +107,11 @@ public class BoardPostService {
         User author = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
 
-        if (request.isPinned()) {
-            boardPostRepository.unpinAll();
-        }
-
         BoardPost post = BoardPost.builder()
                 .author(author)
                 .category(request.getCategory())
                 .title(request.getTitle())
                 .content(request.getContent())
-                .isPinned(request.isPinned())
                 .build();
 
         boardPostRepository.save(post);
@@ -138,11 +125,7 @@ public class BoardPostService {
         BoardPost post = getPostOrThrow(postId);
         validateAuthor(post, userId);
 
-        if (request.isPinned()) {
-            boardPostRepository.unpinAll();
-        }
-
-        post.update(request.getCategory(), request.getTitle(), request.getContent(), request.isPinned());
+        post.update(request.getCategory(), request.getTitle(), request.getContent());
         log.info("게시글 수정: postId={}, userId={}", postId, userId);
 
         boolean liked = boardPostLikeRepository.existsByUserIdAndPostId(userId, postId);

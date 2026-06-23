@@ -64,12 +64,6 @@ public class BoardController {
         return ResponseEntity.ok(ApiResponse.success(response, "인기글 조회 성공"));
     }
 
-    @GetMapping("/pinned")
-    public ResponseEntity<ApiResponse<BoardPostDetailResponse>> getPinnedPost() {
-        BoardPostDetailResponse response = boardPostService.getPinnedPost();
-        return ResponseEntity.ok(ApiResponse.success(response, "핀된 공지글 조회 성공"));
-    }
-
     @GetMapping("/most-viewed")
     public ResponseEntity<ApiResponse<List<BoardPostListItemResponse>>> getMostViewedPosts(
             @RequestParam(defaultValue = "5") int limit) {

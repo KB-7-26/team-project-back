@@ -218,7 +218,7 @@ class BoardPostServiceTest {
     @DisplayName("게시글 등록 성공")
     void createPost_success() {
         // given
-        BoardPostCreateRequest request = new BoardPostCreateRequest(null, "테스트 제목", "테스트 내용", false);
+        BoardPostCreateRequest request = new BoardPostCreateRequest(null, "테스트 제목", "테스트 내용");
 
         given(userRepository.findById(1L)).willReturn(Optional.of(mockUser));
         given(boardPostRepository.save(any(BoardPost.class))).willAnswer(invocation -> invocation.getArgument(0));
@@ -235,7 +235,7 @@ class BoardPostServiceTest {
     @DisplayName("존재하지 않는 userId로 게시글 등록 시 예외 발생")
     void createPost_userNotFound() {
         // given
-        BoardPostCreateRequest request = new BoardPostCreateRequest(null, "제목", "내용", false);
+        BoardPostCreateRequest request = new BoardPostCreateRequest(null, "제목", "내용");
         given(userRepository.findById(999L)).willReturn(Optional.empty());
 
         // when & then
@@ -259,7 +259,7 @@ class BoardPostServiceTest {
                 .content("기존 내용")
                 .build();
 
-        BoardPostUpdateRequest request = new BoardPostUpdateRequest(null, "수정 제목", "수정 내용", false);
+        BoardPostUpdateRequest request = new BoardPostUpdateRequest(null, "수정 제목", "수정 내용");
         given(boardPostRepository.findById(1L)).willReturn(Optional.of(post));
 
         // when
@@ -284,7 +284,7 @@ class BoardPostServiceTest {
                 .content("내용")
                 .build();
 
-        BoardPostUpdateRequest request = new BoardPostUpdateRequest(null, "수정 제목", "수정 내용", false);
+        BoardPostUpdateRequest request = new BoardPostUpdateRequest(null, "수정 제목", "수정 내용");
         given(boardPostRepository.findById(1L)).willReturn(Optional.of(post));
 
         // when & then
@@ -373,42 +373,4 @@ class BoardPostServiceTest {
         assertThat(pageableCaptor.getValue().getPageSize()).isEqualTo(20);
     }
 
-    // ── getPinnedPost ─────────────────────────────────────────
-
-    @Test
-    @DisplayName("핀된 공지글 조회 - isPinned=true인 게시글 반환")
-    void getPinnedPost_returnsPinnedPost() {
-        // given
-        User author = mock(User.class);
-
-        BoardPost pinnedPost = BoardPost.builder()
-                .author(author)
-                .category("공지")
-                .title("KB 일정 공지")
-                .content("내용")
-                .isPinned(true)
-                .build();
-
-        given(boardPostRepository.findFirstByIsPinnedTrue()).willReturn(Optional.of(pinnedPost));
-
-        // when
-        BoardPostDetailResponse response = boardPostService.getPinnedPost();
-
-        // then
-        assertThat(response.getTitle()).isEqualTo("KB 일정 공지");
-        assertThat(response.getCategory()).isEqualTo("공지");
-        verify(boardPostRepository).findFirstByIsPinnedTrue();
-    }
-
-    @Test
-    @DisplayName("핀된 공지글 없으면 예외 발생")
-    void getPinnedPost_noPinnedPost_throwsException() {
-        // given
-        given(boardPostRepository.findFirstByIsPinnedTrue()).willReturn(Optional.empty());
-
-        // when & then
-        assertThatThrownBy(() -> boardPostService.getPinnedPost())
-                .isInstanceOf(NoSuchElementException.class)
-                .hasMessage("핀된 공지글이 없습니다.");
-    }
 }
