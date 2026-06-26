@@ -90,6 +90,7 @@ public class ProductService {
                 product.getSeller().getId(),
                 product.getSeller().getNickname(),
                 product.getSeller().getProfileImageUrl(),
+                product.getSeller().getTrustScore(),
                 images,
                 favoriteCount,
                 product.getCreatedAt()
@@ -163,4 +164,5 @@ public class ProductService {
     }
 
 }
+
 

@@ -2,6 +2,8 @@ package com.example.projectback.user.repository;
 
 import com.example.projectback.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 
 import java.util.Optional;
 
@@ -18,4 +20,16 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByNickname(String nickname);
 
     boolean existsByNicknameAndIdNot(String nickname, Long id);
+
+    @Modifying
+    @Query(value = """
+            UPDATE users u
+            SET u.trust_score = 50
+            WHERE (u.trust_score IS NULL OR u.trust_score = 0)
+              AND NOT EXISTS (
+                  SELECT 1 FROM reviews r WHERE r.reviewee_id = u.id
+              )
+            """, nativeQuery = true)
+    int initializeDefaultTrustScoreForUsersWithoutReviews();
 }
+

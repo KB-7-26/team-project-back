@@ -64,7 +64,7 @@ class AuthServiceTest {
         assertThat(savedUser.getName()).isEqualTo("홍길동");
         assertThat(savedUser.getNickname()).isEqualTo("길동");
         assertThat(savedUser.getProfileImageUrl()).isEqualTo("https://example.com/profile.png");
-        assertThat(savedUser.getTrustScore()).isZero();
+        assertThat(savedUser.getTrustScore()).isEqualTo(User.DEFAULT_TRUST_SCORE);
         assertThat(savedUser.getIsVerified()).isFalse();
     }
 
