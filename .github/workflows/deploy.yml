@@ -59,6 +59,8 @@ jobs:
             FIREBASE_SERVICE_ACCOUNT_JSON=${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
             STORAGE_TYPE=s3
             AWS_REGION=${{ secrets.AWS_REGION || 'ap-northeast-2' }}
+            AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
+            AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
             S3_BUCKET_NAME=${{ secrets.S3_BUCKET_NAME }}
             S3_OBJECT_PREFIX=${{ secrets.S3_OBJECT_PREFIX || 'uploads' }}
             S3_PUBLIC_BASE_URL=${{ secrets.S3_PUBLIC_BASE_URL }}
