@@ -144,6 +144,26 @@ public class ProductService {
     }
 
     @Transactional
+    public void deleteProduct(Long productId) {
+        User currentUser = currentUserProvider.getCurrentUser();
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new EntityNotFoundException("상품을 찾을 수 없습니다."));
+
+        if (!product.getSeller().getId().equals(currentUser.getId())) {
+            throw new org.springframework.security.access.AccessDeniedException("본인의 상품만 삭제할 수 있습니다.");
+        }
+
+        List<ProductImage> images = productImageRepository.findByProductIdOrderBySortOrderAsc(productId);
+        for (ProductImage image : images) {
+            imageStorageService.delete(image.getImageUrl());
+        }
+        productImageRepository.deleteAll(images);
+        productFavoriteRepository.deleteByProductId(productId);
+        userReportRepository.deleteByProductId(productId);
+        productRepository.delete(product);
+    }
+
+    @Transactional
     public void adminDeleteProduct(Long productId) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new EntityNotFoundException("상품을 찾을 수 없습니다."));
