@@ -16,6 +16,10 @@ import com.example.projectback.entity.UserRole;
 @Builder
 public class User {
 
+    public static final int DEFAULT_TRUST_SCORE = 50;
+    private static final int MIN_TRUST_SCORE = 0;
+    private static final int MAX_TRUST_SCORE = 100;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -42,7 +46,7 @@ public class User {
 
     @Builder.Default
     @Column(nullable = false)
-    private Integer trustScore = 0;
+    private Integer trustScore = DEFAULT_TRUST_SCORE;
 
     @Builder.Default
     @Column(nullable = false)
@@ -62,6 +66,9 @@ public class User {
 
     @PrePersist
     protected void onCreate() {
+        if (this.trustScore == null) {
+            this.trustScore = DEFAULT_TRUST_SCORE;
+        }
         this.createdAt = LocalDateTime.now();
     }
 
@@ -79,11 +86,9 @@ public class User {
         this.profileImageUrl = profileImageUrl;
     }
 
-    public void suspend() {
-        this.isSuspended = true;
-    }
-
-    public void unsuspend() {
-        this.isSuspended = false;
+    public void applyTrustScoreDelta(int delta) {
+        int currentScore = this.trustScore == null ? DEFAULT_TRUST_SCORE : this.trustScore;
+        this.trustScore = Math.max(MIN_TRUST_SCORE, Math.min(MAX_TRUST_SCORE, currentScore + delta));
     }
 }
+

@@ -63,6 +63,7 @@ public class ReviewService {
                 .build();
 
         reviewRepository.save(review);
+        reviewee.applyTrustScoreDelta(calculateTrustScoreDelta(request.getRating()));
 
         return new ReviewResponse(
                 review.getId(),
@@ -76,4 +77,16 @@ public class ReviewService {
                 review.getCreatedAt()
         );
     }
+
+    private int calculateTrustScoreDelta(int rating) {
+        return switch (rating) {
+            case 1 -> -12;
+            case 2 -> -6;
+            case 3 -> 0;
+            case 4 -> 3;
+            case 5 -> 6;
+            default -> throw new IllegalArgumentException("별점은 1~5 사이여야 합니다.");
+        };
+    }
 }
+
