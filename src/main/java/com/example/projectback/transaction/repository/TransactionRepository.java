@@ -35,4 +35,8 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 
     // 채팅방으로 거래 조회
     java.util.Optional<Transaction> findByChatRoomId(Long chatRoomId);
+
+    long countBySellerIdAndStatus(Long sellerId, String status);
+
+    long countByBuyerIdAndStatus(Long buyerId, String status);
 }

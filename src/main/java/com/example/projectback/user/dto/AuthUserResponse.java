@@ -1,6 +1,7 @@
 package com.example.projectback.user.dto;
 
 import com.example.projectback.entity.User;
+import com.example.projectback.entity.UserRole;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -20,6 +21,7 @@ public class AuthUserResponse {
     private Integer trustScore;
     private Boolean isVerified;
     private LocalDateTime createdAt;
+    private UserRole role;
 
     public static AuthUserResponse from(User user) {
         return new AuthUserResponse(
@@ -32,7 +34,8 @@ public class AuthUserResponse {
                 user.getProfileImageUrl(),
                 user.getTrustScore(),
                 user.getIsVerified(),
-                user.getCreatedAt()
+                user.getCreatedAt(),
+                user.getRole()
         );
     }
 }

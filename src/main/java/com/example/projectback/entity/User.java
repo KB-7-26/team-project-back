@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
+import com.example.projectback.entity.UserRole;
 
 @Entity
 @Table(name = "users")
@@ -50,6 +51,15 @@ public class User {
     @Builder.Default
     @Column(nullable = false)
     private Boolean isVerified = false;
+
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 10)
+    private UserRole role = UserRole.USER;
+
+    @Builder.Default
+    @Column(nullable = false)
+    private Boolean isSuspended = false;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
