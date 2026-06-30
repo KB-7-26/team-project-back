@@ -60,7 +60,8 @@ public class BoardPostService {
         return page.map(post -> new BoardPostListItemResponse(
                 post,
                 boardCommentRepository.countByPostId(post.getId()),
-                boardPostLikeRepository.countByPostId(post.getId())
+                boardPostLikeRepository.countByPostId(post.getId()),
+                boardPostImageRepository.countByPostId(post.getId()) > 0
         ));
     }
 
@@ -72,7 +73,8 @@ public class BoardPostService {
                 .map(post -> new BoardPostListItemResponse(
                         post,
                         boardCommentRepository.countByPostId(post.getId()),
-                        boardPostLikeRepository.countByPostId(post.getId())
+                        boardPostLikeRepository.countByPostId(post.getId()),
+                        boardPostImageRepository.countByPostId(post.getId()) > 0
                 ))
                 .toList();
     }
@@ -84,7 +86,8 @@ public class BoardPostService {
                 .map(post -> new BoardPostListItemResponse(
                         post,
                         boardCommentRepository.countByPostId(post.getId()),
-                        boardPostLikeRepository.countByPostId(post.getId())
+                        boardPostLikeRepository.countByPostId(post.getId()),
+                        boardPostImageRepository.countByPostId(post.getId()) > 0
                 ))
                 .toList();
     }
