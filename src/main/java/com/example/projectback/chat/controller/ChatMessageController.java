@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,6 +34,10 @@ public class ChatMessageController {
         // accessor.setUser()로 설정한 인증 정보에서 유저 추출
         FirebaseUserPrincipal userPrincipal = (FirebaseUserPrincipal)
                 ((UsernamePasswordAuthenticationToken) principal).getPrincipal();
+
+        if (userPrincipal.getUser() == null || !Boolean.TRUE.equals(userPrincipal.getUser().getIsVerified())) {
+            throw new AccessDeniedException("이메일 인증 또는 가입 완료가 필요합니다.");
+        }
 
         ChatMessageResponse response = chatMessageService.saveMessage(roomId, request, userPrincipal.getUser());
         messagingTemplate.convertAndSend("/topic/chat/" + roomId, response);

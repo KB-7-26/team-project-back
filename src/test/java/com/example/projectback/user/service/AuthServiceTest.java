@@ -13,6 +13,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.access.AccessDeniedException;
 
 import java.util.Optional;
 
@@ -39,6 +40,8 @@ class AuthServiceTest {
                 "user01@example.com",
                 "홍길동",
                 "https://example.com/profile.png",
+                false,
+                "password",
                 null
         );
         ProfileCreateRequest request = new ProfileCreateRequest(
@@ -77,6 +80,8 @@ class AuthServiceTest {
                 "user01@example.com",
                 "홍길동",
                 null,
+                false,
+                "password",
                 null
         );
         ProfileCreateRequest request = new ProfileCreateRequest(
@@ -103,6 +108,8 @@ class AuthServiceTest {
                 "user01@example.com",
                 "홍길동",
                 null,
+                false,
+                "password",
                 null
         );
         given(userRepository.findByFirebaseUid("firebase-uid-1")).willReturn(Optional.empty());
@@ -112,5 +119,94 @@ class AuthServiceTest {
         assertThat(response.getProfileRequired()).isTrue();
         assertThat(response.getPendingUser().getEmail()).isEqualTo("user01@example.com");
         assertThat(response.getUser()).isNull();
+    }
+
+    @Test
+    void createProfileMarksGoogleAccountVerified() {
+        FirebaseUserPrincipal principal = new FirebaseUserPrincipal(
+                "firebase-uid-1",
+                "user01@example.com",
+                "홍길동",
+                "https://example.com/profile.png",
+                false,
+                "google.com",
+                null
+        );
+        ProfileCreateRequest request = new ProfileCreateRequest(
+                "홍길동",
+                "길동",
+                "M",
+                "30회차 비전공",
+                null
+        );
+
+        given(userRepository.existsByFirebaseUid("firebase-uid-1")).willReturn(false);
+        given(userRepository.existsByEmail("user01@example.com")).willReturn(false);
+        given(userRepository.existsByNickname("길동")).willReturn(false);
+        given(userRepository.save(any(User.class))).willAnswer(invocation -> invocation.getArgument(0));
+
+        authService.createProfile(principal, request);
+
+        ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
+        verify(userRepository).save(userCaptor.capture());
+
+        assertThat(userCaptor.getValue().getIsVerified()).isTrue();
+    }
+
+    @Test
+    void verifyEmailMarksEmailAccountVerified() {
+        User user = User.builder()
+                .firebaseUid("firebase-uid-1")
+                .email("user01@example.com")
+                .name("홍길동")
+                .nickname("길동")
+                .gender("M")
+                .cohort("30회차 비전공")
+                .isVerified(false)
+                .build();
+        FirebaseUserPrincipal principal = new FirebaseUserPrincipal(
+                "firebase-uid-1",
+                "user01@example.com",
+                "홍길동",
+                null,
+                true,
+                "password",
+                user
+        );
+        given(userRepository.findByFirebaseUid("firebase-uid-1")).willReturn(Optional.of(user));
+
+        AuthMeResponse response = authService.verifyEmail(principal);
+
+        assertThat(user.getIsVerified()).isTrue();
+        assertThat(response.getUser().getIsVerified()).isTrue();
+    }
+
+    @Test
+    void verifyEmailRejectsUnverifiedFirebaseEmail() {
+        User user = User.builder()
+                .firebaseUid("firebase-uid-1")
+                .email("user01@example.com")
+                .name("홍길동")
+                .nickname("길동")
+                .gender("M")
+                .cohort("30회차 비전공")
+                .isVerified(false)
+                .build();
+        FirebaseUserPrincipal principal = new FirebaseUserPrincipal(
+                "firebase-uid-1",
+                "user01@example.com",
+                "홍길동",
+                null,
+                false,
+                "password",
+                user
+        );
+        given(userRepository.findByFirebaseUid("firebase-uid-1")).willReturn(Optional.of(user));
+
+        assertThatThrownBy(() -> authService.verifyEmail(principal))
+                .isInstanceOf(AccessDeniedException.class)
+                .hasMessage("이메일 인증이 아직 완료되지 않았습니다.");
+
+        assertThat(user.getIsVerified()).isFalse();
     }
 }

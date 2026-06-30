@@ -86,9 +86,20 @@ public class User {
         this.profileImageUrl = profileImageUrl;
     }
 
+    public void verify() {
+        this.isVerified = true;
+    }
+
+    public void suspend() {
+        this.isSuspended = true;
+    }
+
+    public void unsuspend() {
+        this.isSuspended = false;
+    }
+
     public void applyTrustScoreDelta(int delta) {
         int currentScore = this.trustScore == null ? DEFAULT_TRUST_SCORE : this.trustScore;
         this.trustScore = Math.max(MIN_TRUST_SCORE, Math.min(MAX_TRUST_SCORE, currentScore + delta));
     }
 }
-

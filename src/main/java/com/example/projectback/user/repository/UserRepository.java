@@ -17,6 +17,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByEmail(String email);
 
+    Page<User> findByCohort(String cohort, Pageable pageable);
+
     boolean existsByFirebaseUid(String firebaseUid);
 
     boolean existsByEmail(String email);
@@ -35,5 +37,12 @@ public interface UserRepository extends JpaRepository<User, Long> {
               )
             """, nativeQuery = true)
     int initializeDefaultTrustScoreForUsersWithoutReviews();
-}
 
+    @Query("""
+            SELECT new com.example.projectback.admin.dto.CohortSummaryResponse(u.cohort, COUNT(u))
+            FROM User u
+            GROUP BY u.cohort
+            ORDER BY u.cohort DESC
+            """)
+    List<CohortSummaryResponse> findCohortSummary();
+}
