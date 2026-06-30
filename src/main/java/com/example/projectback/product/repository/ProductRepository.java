@@ -8,7 +8,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
+
 public interface ProductRepository extends JpaRepository<Product, Long> {
+
+    long countBySellerId(Long sellerId);
 
     long countBySellerIdAndSaleStatus(Long sellerId, String saleStatus);
 
@@ -84,4 +88,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     Page<ProductListResponse> findMyProducts(@Param("sellerId") Long sellerId,
                                              @Param("saleStatus") String saleStatus,
                                              Pageable pageable);
+
+    @Query("SELECT p.id FROM Product p WHERE p.seller.id = :sellerId")
+    List<Long> findIdsBySellerId(@Param("sellerId") Long sellerId);
 }

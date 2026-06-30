@@ -6,10 +6,13 @@ import com.example.projectback.board.dto.BoardPostDetailResponse;
 import com.example.projectback.board.dto.BoardPostListItemResponse;
 import com.example.projectback.board.dto.BoardPostUpdateRequest;
 import com.example.projectback.board.repository.BoardCommentRepository;
+import com.example.projectback.board.repository.BoardCommentLikeRepository;
 import com.example.projectback.board.repository.BoardPostLikeRepository;
+import com.example.projectback.board.repository.BoardPostImageRepository;
 import com.example.projectback.board.repository.BoardPostRepository;
 import com.example.projectback.entity.BoardPost;
 import com.example.projectback.entity.User;
+import com.example.projectback.image.service.ImageStorageService;
 import com.example.projectback.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -49,7 +52,16 @@ class BoardPostServiceTest {
     private BoardCommentRepository boardCommentRepository;
 
     @Mock
+    private BoardCommentLikeRepository boardCommentLikeRepository;
+
+    @Mock
     private BoardPostLikeRepository boardPostLikeRepository;
+
+    @Mock
+    private BoardPostImageRepository boardPostImageRepository;
+
+    @Mock
+    private ImageStorageService imageStorageService;
 
     @Mock
     private UserRepository userRepository;
@@ -65,6 +77,9 @@ class BoardPostServiceTest {
         lenient().when(boardCommentRepository.countByPostId(anyLong())).thenReturn(0L);
         lenient().when(boardPostLikeRepository.countByPostId(anyLong())).thenReturn(0L);
         lenient().when(boardPostLikeRepository.existsByUserIdAndPostId(anyLong(), anyLong())).thenReturn(false);
+        lenient().when(boardPostImageRepository.findByPostIdOrderByCreatedAtAsc(anyLong())).thenReturn(List.of());
+        lenient().when(boardPostImageRepository.findByPostId(anyLong())).thenReturn(List.of());
+        lenient().when(boardCommentRepository.findIdsByPostId(anyLong())).thenReturn(List.of());
     }
 
     // ── getPosts ──────────────────────────────────────────────
@@ -372,4 +387,5 @@ class BoardPostServiceTest {
         assertThat(sinceCaptor.getValue()).isAfter(LocalDateTime.now().minusDays(7).minusSeconds(5));
         assertThat(pageableCaptor.getValue().getPageSize()).isEqualTo(20);
     }
+
 }

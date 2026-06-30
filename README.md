@@ -50,7 +50,7 @@ project-back/
         │       ├── SecurityConfig.java
         │       └── SwaggerConfig.java
         └── resources/
-            └── application.yaml         # 환경 설정 (gitignore 처리됨)
+            └── application.yaml         # 환경변수 기반 공통 설정
 ```
 
 ---
@@ -79,39 +79,14 @@ project-back/
 
 ## 로컬 실행 방법
 
-### 1. application.yaml 작성
+### 1. 환경변수 파일 작성
 
-`src/main/resources/application.yaml` 파일을 직접 생성합니다.  
-(해당 파일은 `.gitignore`에 포함되어 있어 레포에 올라가지 않습니다.)
-
-```yaml
-spring:
-  application:
-    name: project-back
-  datasource:
-    url: jdbc:mysql://127.0.0.1:3306/kb_project
-    username: root
-    password: ''             # MySQL 비밀번호 입력
-    driver-class-name: com.mysql.cj.jdbc.Driver
-  jpa:
-    hibernate:
-      ddl-auto: create        # 최초 실행 시 create, 이후 update로 변경
-    show-sql: true
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.MySQLDialect
-
-server:
-  port: 8080
-  servlet:
-    session:
-      persistent: false
-
-firebase:
-  service-account-path: ${FIREBASE_SERVICE_ACCOUNT_PATH:}
-  service-account-json: ${FIREBASE_SERVICE_ACCOUNT_JSON:}
-
+```bash
+cp .env.example .env
 ```
+
+`.env`는 로컬 전용 파일이며 `.gitignore`에 포함되어 레포에 올라가지 않습니다.
+Firebase Admin SDK 서비스 계정 JSON은 백엔드 repo 밖의 `../secrets/firebase-service-account.json`에 두는 구성을 기본값으로 사용합니다.
 
 ### 2. MySQL DB 생성
 
@@ -126,3 +101,20 @@ CREATE DATABASE kb_project;
 ```
 
 또는 IntelliJ에서 `ProjectBackApplication.java` 실행
+
+## 배포 환경변수
+
+GitHub Secrets 또는 배포 플랫폼 환경변수에는 `.env.example`의 키 이름을 그대로 등록합니다.
+
+| 변수 | 설명 |
+|------|------|
+| `SERVER_PORT` | Spring Boot 실행 포트 |
+| `SPRING_DATASOURCE_URL` | 운영 DB JDBC URL |
+| `SPRING_DATASOURCE_USERNAME` | 운영 DB 사용자명 |
+| `SPRING_DATASOURCE_PASSWORD` | 운영 DB 비밀번호 |
+| `SPRING_JPA_HIBERNATE_DDL_AUTO` | 운영에서는 보통 `validate` 또는 `none` 권장 |
+| `SPRING_JPA_SHOW_SQL` | 운영에서는 보통 `false` 권장 |
+| `FIREBASE_SERVICE_ACCOUNT_JSON` | Firebase Admin SDK 서비스 계정 JSON. raw JSON 한 줄 또는 base64 문자열 사용 가능 |
+| `IMAGE_UPLOAD_DIR` | 업로드 파일 저장 경로 |
+| `IMAGE_BASE_URL` | 업로드 파일을 외부에서 접근할 public base URL |
+| `APP_CORS_ALLOWED_ORIGIN_PATTERNS` | 프론트 배포 도메인. 여러 개면 comma로 구분 |

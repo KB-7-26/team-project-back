@@ -41,3 +41,31 @@ dependencies {
 tasks.named('test') {
     useJUnitPlatform()
 }
+
+def loadDotEnv(File envFile) {
+    if (!envFile.exists()) {
+        return [:]
+    }
+
+    return envFile.readLines()
+            .collect { it.trim() }
+            .findAll { it && !it.startsWith('#') && it.contains('=') }
+            .collectEntries { line ->
+                def separatorIndex = line.indexOf('=')
+                def key = line.substring(0, separatorIndex).trim()
+                def value = line.substring(separatorIndex + 1).trim()
+
+                if ((value.startsWith('"') && value.endsWith('"')) ||
+                        (value.startsWith("'") && value.endsWith("'"))) {
+                    value = value.substring(1, value.length() - 1)
+                }
+
+                [(key): value]
+            }
+}
+
+tasks.named('bootRun') {
+    environment loadDotEnv(file('.env')).findAll { key, ignored ->
+        !System.getenv().containsKey(key)
+    }
+}

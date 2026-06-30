@@ -22,6 +22,7 @@ public class ProductDetailResponse {
     private Long sellerId;
     private String sellerNickname;
     private String sellerProfileImageUrl;
+    private Integer sellerTrustScore;
     private List<ProductImageUploadResponse> images;
     private Long favoriteCount;
     private LocalDateTime createdAt;

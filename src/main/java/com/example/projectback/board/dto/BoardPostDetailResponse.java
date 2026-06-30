@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 public class BoardPostDetailResponse {
@@ -20,8 +21,9 @@ public class BoardPostDetailResponse {
     private final boolean isOwner;
     private final boolean liked;
     private final long likeCount;
+    private final List<BoardPostImageResponse> images;
 
-    public BoardPostDetailResponse(BoardPost post, Long currentUserId, boolean liked, long likeCount) {
+    public BoardPostDetailResponse(BoardPost post, Long currentUserId, boolean liked, long likeCount, List<BoardPostImageResponse> images) {
         this.id = post.getId();
         this.category = post.getCategory();
         this.title = post.getTitle();
@@ -33,5 +35,6 @@ public class BoardPostDetailResponse {
         this.isOwner = currentUserId != null && currentUserId.equals(post.getAuthor().getId());
         this.liked = liked;
         this.likeCount = likeCount;
+        this.images = images;
     }
 }

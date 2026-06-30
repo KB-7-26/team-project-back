@@ -10,6 +10,7 @@ import com.example.projectback.product.repository.CategoryRepository;
 import com.example.projectback.product.repository.ProductFavoriteRepository;
 import com.example.projectback.product.repository.ProductImageRepository;
 import com.example.projectback.product.repository.ProductRepository;
+import com.example.projectback.report.repository.UserReportRepository;
 import com.example.projectback.security.CurrentUserProvider;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,7 @@ public class ProductService {
     private final CategoryRepository categoryRepository;
     private final CurrentUserProvider currentUserProvider;
     private final ImageStorageService imageStorageService;
+    private final UserReportRepository userReportRepository;
 
     @Transactional
     public ProductCreateResponse createProduct(ProductCreateRequest request) {
@@ -90,6 +92,7 @@ public class ProductService {
                 product.getSeller().getId(),
                 product.getSeller().getNickname(),
                 product.getSeller().getProfileImageUrl(),
+                product.getSeller().getTrustScore(),
                 images,
                 favoriteCount,
                 product.getCreatedAt()
@@ -142,6 +145,21 @@ public class ProductService {
     }
 
     @Transactional
+    public void adminDeleteProduct(Long productId) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new EntityNotFoundException("상품을 찾을 수 없습니다."));
+
+        List<ProductImage> images = productImageRepository.findByProductIdOrderBySortOrderAsc(productId);
+        for (ProductImage image : images) {
+            imageStorageService.delete(image.getImageUrl());
+        }
+        productImageRepository.deleteAll(images);
+        productFavoriteRepository.deleteByProductId(productId);
+        userReportRepository.deleteByProductId(productId);
+        productRepository.delete(product);
+    }
+
+    @Transactional
     public void updateProduct(Long id, ProductUpdateRequest request){
         Product product = productRepository.findById(id).orElseThrow(() ->
                 new EntityNotFoundException("상품을 찾을 수 없습니다."));
@@ -163,4 +181,5 @@ public class ProductService {
     }
 
 }
+
 

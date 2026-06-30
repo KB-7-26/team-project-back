@@ -2,6 +2,7 @@ package com.example.projectback.user.service;
 
 import com.example.projectback.common.exception.DuplicateResourceException;
 import com.example.projectback.entity.User;
+import com.example.projectback.entity.UserRole;
 import com.example.projectback.security.FirebaseUserPrincipal;
 import com.example.projectback.user.dto.AuthMeResponse;
 import com.example.projectback.user.dto.ProfileCreateRequest;
@@ -67,8 +68,9 @@ class AuthServiceTest {
         assertThat(savedUser.getName()).isEqualTo("홍길동");
         assertThat(savedUser.getNickname()).isEqualTo("길동");
         assertThat(savedUser.getProfileImageUrl()).isEqualTo("https://example.com/profile.png");
-        assertThat(savedUser.getTrustScore()).isZero();
+        assertThat(savedUser.getTrustScore()).isEqualTo(User.DEFAULT_TRUST_SCORE);
         assertThat(savedUser.getIsVerified()).isFalse();
+        assertThat(savedUser.getRole()).isEqualTo(UserRole.USER);
     }
 
     @Test

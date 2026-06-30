@@ -18,6 +18,10 @@ public interface ProductFavoriteRepository extends JpaRepository<ProductFavorite
 
     void deleteByUserIdAndProductId(Long userId, Long productId);
 
+    void deleteByProductId(Long productId);
+
+    void deleteByUserId(Long userId);
+
     @Query("""
             SELECT new com.example.projectback.product.dto.ProductListResponse(
                 p.id, p.title, p.price, p.isFree, p.saleStatus, p.location,
