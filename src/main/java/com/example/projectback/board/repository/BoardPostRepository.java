@@ -40,6 +40,28 @@ public interface BoardPostRepository extends JpaRepository<BoardPost, Long> {
     )
     Page<BoardPost> findCommentedPostsByAuthorId(@Param("authorId") Long authorId, Pageable pageable);
 
+    @Query(
+            value = """
+                    SELECT p
+                    FROM BoardPost p
+                    WHERE p.id IN (
+                        SELECT l.post.id
+                        FROM BoardPostLike l
+                        WHERE l.user.id = :userId
+                    )
+                    """,
+            countQuery = """
+                    SELECT COUNT(p)
+                    FROM BoardPost p
+                    WHERE p.id IN (
+                        SELECT l.post.id
+                        FROM BoardPostLike l
+                        WHERE l.user.id = :userId
+                    )
+                    """
+    )
+    Page<BoardPost> findLikedPostsByUserId(@Param("userId") Long userId, Pageable pageable);
+
     @Query("""
             SELECT p FROM BoardPost p
             WHERE (:category IS NULL OR p.category = :category)

@@ -41,6 +41,16 @@ public class UserBoardActivityController {
         return ResponseEntity.ok(ApiResponse.success(response, "댓글 단 글 조회 성공"));
     }
 
+    @GetMapping("/liked-board-posts")
+    public ResponseEntity<ApiResponse<Page<BoardPostListItemResponse>>> getMyLikedPosts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Pageable pageable = createPageable(page, size);
+        Page<BoardPostListItemResponse> response = userBoardActivityService.getMyLikedPosts(pageable);
+        return ResponseEntity.ok(ApiResponse.success(response, "좋아요 한 글 조회 성공"));
+    }
+
     private Pageable createPageable(int page, int size) {
         return PageRequest.of(page, size, Sort.by("createdAt").descending());
     }
