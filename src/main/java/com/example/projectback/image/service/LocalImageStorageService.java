@@ -1,6 +1,7 @@
 package com.example.projectback.image.service;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.support.StandardServletMultipartResolver;
@@ -12,6 +13,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.UUID;
 
 @Service
+@ConditionalOnProperty(name = "storage.type", havingValue = "local", matchIfMissing = true)
 public class LocalImageStorageService implements ImageStorageService{
     private final StandardServletMultipartResolver standardServletMultipartResolver;
     @Value("${image.upload-dir}")

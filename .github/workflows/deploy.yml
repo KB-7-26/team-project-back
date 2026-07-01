@@ -54,11 +54,16 @@ jobs:
             SPRING_DATASOURCE_URL=${{ secrets.DB_URL }}
             SPRING_DATASOURCE_USERNAME=${{ secrets.DB_USERNAME }}
             SPRING_DATASOURCE_PASSWORD=${{ secrets.DB_PASSWORD }}
-            SPRING_JPA_HIBERNATE_DDL_AUTO=${{ secrets.SPRING_JPA_HIBERNATE_DDL_AUTO }}
-            SPRING_JPA_SHOW_SQL=${{ secrets.SPRING_JPA_SHOW_SQL }}
+            SPRING_JPA_HIBERNATE_DDL_AUTO=${{ secrets.SPRING_JPA_HIBERNATE_DDL_AUTO || 'update' }}
+            SPRING_JPA_SHOW_SQL=${{ secrets.SPRING_JPA_SHOW_SQL || 'false' }}
             FIREBASE_SERVICE_ACCOUNT_JSON=${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
-            IMAGE_UPLOAD_DIR=${{ secrets.IMAGE_UPLOAD_DIR }}
-            IMAGE_BASE_URL=${{ secrets.IMAGE_BASE_URL }}
+            STORAGE_TYPE=s3
+            AWS_REGION=${{ secrets.AWS_REGION || 'ap-northeast-2' }}
+            AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
+            AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
+            S3_BUCKET_NAME=${{ secrets.S3_BUCKET_NAME }}
+            S3_OBJECT_PREFIX=${{ secrets.S3_OBJECT_PREFIX || 'uploads' }}
+            S3_PUBLIC_BASE_URL=${{ secrets.S3_PUBLIC_BASE_URL }}
             APP_CORS_ALLOWED_ORIGIN_PATTERNS=${{ secrets.APP_CORS_ALLOWED_ORIGIN_PATTERNS }}
             EOF
 
@@ -77,4 +82,11 @@ jobs:
               -p 8080:8080 \
               ${{ secrets.DOCKER_HUB_USERNAME }}/project-back:${{ github.sha }}
 
+            sleep 20
+            if ! docker ps --filter "name=project-back" --filter "status=running" --format "{{.Names}}" | grep -q "^project-back$"; then
+              docker logs --tail=200 project-back || true
+              exit 1
+            fi
+
+            docker logs --tail=80 project-back
             docker image prune -f
