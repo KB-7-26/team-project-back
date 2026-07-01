@@ -15,8 +15,13 @@ public class BoardPostListItemResponse {
     private final LocalDateTime createdAt;
     private final long commentCount;
     private final long likeCount;
+    private final boolean hasImage;
 
     public BoardPostListItemResponse(BoardPost post, long commentCount, long likeCount) {
+        this(post, commentCount, likeCount, false);
+    }
+
+    public BoardPostListItemResponse(BoardPost post, long commentCount, long likeCount, boolean hasImage) {
         this.id = post.getId();
         this.category = post.getCategory();
         this.title = post.getTitle();
@@ -25,5 +30,6 @@ public class BoardPostListItemResponse {
         this.createdAt = post.getCreatedAt();
         this.commentCount = commentCount;
         this.likeCount = likeCount;
+        this.hasImage = hasImage;
     }
 }
