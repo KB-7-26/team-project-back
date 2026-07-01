@@ -1,6 +1,6 @@
 # KB team-project-Backend
 
-KB국민은행 IT's Your Life 부트캠프 팀 프로젝트  
+KB국민은행 IT's Your Life 부트캠프 팀 프로젝트!  
 
 ---
 
