@@ -88,6 +88,7 @@ public class ProductService {
                 product.getSaleStatus(),
                 product.getLocation(),
                 product.getViewCount(),
+                product.getCategory().getId(),
                 product.getCategory().getName(),
                 product.getSeller().getId(),
                 product.getSeller().getNickname(),
