@@ -49,6 +49,12 @@ public class ProductController {
         return ResponseEntity.ok(productService.uploadImages(id,files));
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
+        productService.deleteProduct(id);
+        return ResponseEntity.noContent().build();
+    }
+
     @DeleteMapping("/{id}/images/{imageId}")
     public ResponseEntity<Void> deleteImage(@PathVariable Long id, @PathVariable Long imageId){
         productService.deleteImage(id, imageId);
