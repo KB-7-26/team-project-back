@@ -184,7 +184,7 @@ public class BoardPostService {
     }
 
     private void validateAuthor(BoardPost post, Long userId) {
-        if (userId == null || !userId.equals(post.getAuthor().getId())) {
+        if (userId == null || post.getAuthor() == null || !userId.equals(post.getAuthor().getId())) {
             log.warn("게시글 수정/삭제 권한 없음: postId={}, userId={}", post.getId(), userId);
             throw new AccessDeniedException("게시글 수정/삭제 권한이 없습니다.");
         }

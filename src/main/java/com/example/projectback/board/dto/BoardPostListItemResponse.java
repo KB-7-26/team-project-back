@@ -20,7 +20,7 @@ public class BoardPostListItemResponse {
         this.id = post.getId();
         this.category = post.getCategory();
         this.title = post.getTitle();
-        this.displayName = "익명";
+        this.displayName = post.getAuthor() == null ? "탈퇴한 사용자" : "익명";
         this.viewCount = post.getViewCount();
         this.createdAt = post.getCreatedAt();
         this.commentCount = commentCount;

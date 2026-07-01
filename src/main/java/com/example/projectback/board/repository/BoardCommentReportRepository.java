@@ -19,6 +19,6 @@ public interface BoardCommentReportRepository extends JpaRepository<BoardComment
     @Query("SELECT COUNT(r) FROM BoardCommentReport r WHERE r.comment.author.id = :userId")
     long countByCommentAuthorId(@Param("userId") Long userId);
 
-    @Query("SELECT DISTINCT r.comment.author.id FROM BoardCommentReport r")
+    @Query("SELECT DISTINCT r.comment.author.id FROM BoardCommentReport r WHERE r.comment.author IS NOT NULL")
     List<Long> findDistinctReportedAuthorIds();
 }

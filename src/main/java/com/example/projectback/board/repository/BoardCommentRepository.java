@@ -39,4 +39,8 @@ public interface BoardCommentRepository extends JpaRepository<BoardComment, Long
     @Modifying(clearAutomatically = true)
     @Query("DELETE FROM BoardComment c WHERE c.author.id = :authorId AND c.parentComment IS NULL")
     void deleteParentsByAuthorId(@Param("authorId") Long authorId);
+
+    @Modifying(clearAutomatically = true)
+    @Query("UPDATE BoardComment c SET c.author = null WHERE c.author.id = :authorId")
+    void clearAuthorByAuthorId(@Param("authorId") Long authorId);
 }

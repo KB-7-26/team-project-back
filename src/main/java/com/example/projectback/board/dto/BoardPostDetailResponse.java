@@ -28,11 +28,13 @@ public class BoardPostDetailResponse {
         this.category = post.getCategory();
         this.title = post.getTitle();
         this.content = post.getContent();
-        this.displayName = "익명";
+        this.displayName = post.getAuthor() == null ? "탈퇴한 사용자" : "익명";
         this.viewCount = post.getViewCount();
         this.createdAt = post.getCreatedAt();
         this.updatedAt = post.getUpdatedAt();
-        this.isOwner = currentUserId != null && currentUserId.equals(post.getAuthor().getId());
+        this.isOwner = currentUserId != null
+                && post.getAuthor() != null
+                && currentUserId.equals(post.getAuthor().getId());
         this.liked = liked;
         this.likeCount = likeCount;
         this.images = images;

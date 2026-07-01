@@ -62,6 +62,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/auth/me").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/auth/profile").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/auth/verify-email").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/users/me").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/users/me/withdraw").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/products", "/api/products/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/users/*/profile").permitAll()
                         .requestMatchers("/uploads/**").permitAll()

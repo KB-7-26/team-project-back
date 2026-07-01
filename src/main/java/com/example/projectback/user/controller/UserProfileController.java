@@ -5,8 +5,10 @@ import com.example.projectback.user.dto.UserProfileResponse;
 import com.example.projectback.user.dto.UserProfileUpdateRequest;
 import com.example.projectback.user.dto.UserPublicProfileResponse;
 import com.example.projectback.user.service.UserProfileService;
+import com.example.projectback.user.service.UserWithdrawalService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -15,8 +17,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -26,6 +29,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class UserProfileController {
 
     private final UserProfileService userProfileService;
+    private final UserWithdrawalService userWithdrawalService;
 
     @GetMapping("/me/profile")
     public ResponseEntity<ApiResponse<UserProfileResponse>> getMyProfile() {
@@ -57,5 +61,30 @@ public class UserProfileController {
     public ResponseEntity<ApiResponse<UserProfileResponse>> deleteProfileImage() {
         UserProfileResponse response = userProfileService.deleteMyProfileImage();
         return ResponseEntity.ok(ApiResponse.success(response, "프로필 이미지 삭제 성공"));
+    }
+
+    @DeleteMapping("/me")
+    public ResponseEntity<ApiResponse<Void>> withdrawCurrentUser(
+            @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorizationHeader
+    ) {
+        userWithdrawalService.withdrawCurrentUser(authorizationHeader);
+        return ResponseEntity.ok(ApiResponse.success(null, "회원 탈퇴 성공"));
+    }
+
+    @PostMapping("/me/withdraw")
+    public ResponseEntity<ApiResponse<Void>> withdrawCurrentUserByPost(
+            @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorizationHeader,
+            @RequestHeader(value = "X-Firebase-Id-Token", required = false) String idTokenHeader,
+            @RequestBody(required = false) WithdrawalRequest request
+    ) {
+        userWithdrawalService.withdrawCurrentUser(
+                authorizationHeader,
+                idTokenHeader,
+                request != null ? request.idToken() : null
+        );
+        return ResponseEntity.ok(ApiResponse.success(null, "회원 탈퇴 성공"));
+    }
+
+    private record WithdrawalRequest(String idToken) {
     }
 }

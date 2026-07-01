@@ -1,20 +1,19 @@
 package com.example.projectback.admin.service;
 
 import com.example.projectback.admin.dto.AdminUserResponse;
-import com.example.projectback.board.repository.BoardCommentLikeRepository;
 import com.example.projectback.board.repository.BoardCommentReportRepository;
 import com.example.projectback.board.repository.BoardCommentRepository;
-import com.example.projectback.board.repository.BoardPostLikeRepository;
 import com.example.projectback.board.repository.BoardPostReportRepository;
 import com.example.projectback.board.repository.BoardPostRepository;
 import com.example.projectback.board.service.BoardPostService;
 import com.example.projectback.entity.User;
 import com.example.projectback.entity.UserRole;
-import com.example.projectback.product.repository.ProductFavoriteRepository;
 import com.example.projectback.product.repository.ProductRepository;
 import com.example.projectback.product.service.ProductService;
 import com.example.projectback.report.repository.UserReportRepository;
+import com.example.projectback.transaction.repository.TransactionRepository;
 import com.example.projectback.user.repository.UserRepository;
+import com.example.projectback.user.service.UserWithdrawalService;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -24,7 +23,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
@@ -37,14 +35,13 @@ class AdminServiceTest {
     @Mock UserReportRepository userReportRepository;
     @Mock BoardPostRepository boardPostRepository;
     @Mock BoardCommentRepository boardCommentRepository;
-    @Mock BoardCommentLikeRepository boardCommentLikeRepository;
     @Mock BoardCommentReportRepository boardCommentReportRepository;
-    @Mock BoardPostLikeRepository boardPostLikeRepository;
     @Mock BoardPostReportRepository boardPostReportRepository;
     @Mock ProductRepository productRepository;
-    @Mock ProductFavoriteRepository productFavoriteRepository;
     @Mock BoardPostService boardPostService;
     @Mock ProductService productService;
+    @Mock TransactionRepository transactionRepository;
+    @Mock UserWithdrawalService userWithdrawalService;
 
     @InjectMocks
     AdminService adminService;
@@ -95,22 +92,11 @@ class AdminServiceTest {
     }
 
     @Test
-    @DisplayName("forceWithdraw - 유저 및 연관 데이터 삭제 호출 검증")
-    void forceWithdraw_deletes_user_and_related_data() {
-        given(userRepository.findById(1L)).willReturn(Optional.of(normalUser));
-        given(boardCommentRepository.findIdsByAuthorId(1L)).willReturn(List.of());
-        given(boardCommentRepository.findReplyIdsByParentAuthorId(1L)).willReturn(List.of());
-        given(boardPostRepository.findIdsByAuthorId(1L)).willReturn(List.of());
-        given(productRepository.findIdsBySellerId(1L)).willReturn(List.of());
-
+    @DisplayName("forceWithdraw - 회원 탈퇴 서비스에 위임한다")
+    void forceWithdraw_delegates_to_withdrawal_service() {
         adminService.forceWithdraw(1L);
 
-        verify(boardPostLikeRepository).deleteByUserId(1L);
-        verify(boardPostReportRepository).deleteByUserId(1L);
-        verify(productFavoriteRepository).deleteByUserId(1L);
-        verify(userReportRepository).deleteByReporterId(1L);
-        verify(userReportRepository).deleteByReportedUserId(1L);
-        verify(userRepository).delete(normalUser);
+        verify(userWithdrawalService).withdrawUser(1L);
     }
 
     @Test
