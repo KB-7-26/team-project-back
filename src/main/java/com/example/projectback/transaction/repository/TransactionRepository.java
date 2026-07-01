@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
+
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
 
     @Query(value = """
@@ -35,6 +37,14 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 
     // 채팅방으로 거래 조회
     java.util.Optional<Transaction> findByChatRoomId(Long chatRoomId);
+
+    @Query("SELECT t.id FROM Transaction t WHERE t.chatRoom.id IN :chatRoomIds")
+    List<Long> findIdsByChatRoomIdIn(@Param("chatRoomIds") List<Long> chatRoomIds);
+
+    @Query("SELECT t.id FROM Transaction t WHERE t.seller.id = :userId OR t.buyer.id = :userId")
+    List<Long> findIdsByUserId(@Param("userId") Long userId);
+
+    void deleteByIdIn(List<Long> ids);
 
     long countBySellerIdAndStatus(Long sellerId, String status);
 

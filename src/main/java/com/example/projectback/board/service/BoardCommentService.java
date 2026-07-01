@@ -36,7 +36,7 @@ public class BoardCommentService {
     public List<BoardCommentResponse> getComments(Long postId, Long currentUserId) {
         BoardPost post = getPostOrThrow(postId);
         List<BoardComment> allComments = boardCommentRepository.findByPostIdOrderByCreatedAtAsc(postId);
-        Map<Long, String> anonMap = buildAnonMap(allComments, post.getAuthor().getId());
+        Map<Long, String> anonMap = buildAnonMap(allComments, getAuthorId(post));
 
         Map<Long, List<BoardComment>> repliesByParentId = allComments.stream()
                 .filter(c -> c.getParentComment() != null)
@@ -74,9 +74,9 @@ public class BoardCommentService {
         log.info("댓글 등록: postId={}, commentId={}, userId={}, isReply={}", postId, comment.getId(), userId, parentComment != null);
 
         List<BoardComment> allComments = boardCommentRepository.findByPostIdOrderByCreatedAtAsc(postId);
-        Map<Long, String> anonMap = buildAnonMap(allComments, post.getAuthor().getId());
+        Map<Long, String> anonMap = buildAnonMap(allComments, getAuthorId(post));
 
-        return new BoardCommentResponse(comment, anonMap.get(userId), userId, List.of(), false, 0L);
+        return new BoardCommentResponse(comment, getDisplayName(comment, anonMap), userId, List.of(), false, 0L);
     }
 
     @Transactional
@@ -90,11 +90,11 @@ public class BoardCommentService {
         log.info("댓글 수정: postId={}, commentId={}, userId={}", postId, commentId, userId);
 
         List<BoardComment> allComments = boardCommentRepository.findByPostIdOrderByCreatedAtAsc(postId);
-        Map<Long, String> anonMap = buildAnonMap(allComments, post.getAuthor().getId());
+        Map<Long, String> anonMap = buildAnonMap(allComments, getAuthorId(post));
 
         boolean liked = boardCommentLikeRepository.existsByUserIdAndCommentId(userId, commentId);
         long likeCount = boardCommentLikeRepository.countByCommentId(commentId);
-        return new BoardCommentResponse(comment, anonMap.get(userId), userId, List.of(), liked, likeCount);
+        return new BoardCommentResponse(comment, getDisplayName(comment, anonMap), userId, List.of(), liked, likeCount);
     }
 
     @Transactional
@@ -112,9 +112,10 @@ public class BoardCommentService {
         Map<Long, String> anonMap = new LinkedHashMap<>();
         int counter = 1;
         for (BoardComment comment : allComments) {
-            Long authorId = comment.getAuthor().getId();
+            Long authorId = getAuthorId(comment);
+            if (authorId == null) continue;
             if (anonMap.containsKey(authorId)) continue;
-            if (authorId.equals(postAuthorId)) {
+            if (postAuthorId != null && authorId.equals(postAuthorId)) {
                 anonMap.put(authorId, "익명");
             } else {
                 anonMap.put(authorId, "익명" + counter++);
@@ -133,14 +134,14 @@ public class BoardCommentService {
                             boardCommentLikeRepository.existsByUserIdAndCommentId(currentUserId, reply.getId());
                     long replyLikeCount = boardCommentLikeRepository.countByCommentId(reply.getId());
                     return new BoardCommentResponse(
-                            reply, anonMap.get(reply.getAuthor().getId()), currentUserId, List.of(), replyLiked, replyLikeCount);
+                            reply, getDisplayName(reply, anonMap), currentUserId, List.of(), replyLiked, replyLikeCount);
                 })
                 .collect(Collectors.toList());
 
         boolean liked = currentUserId != null &&
                 boardCommentLikeRepository.existsByUserIdAndCommentId(currentUserId, comment.getId());
         long likeCount = boardCommentLikeRepository.countByCommentId(comment.getId());
-        return new BoardCommentResponse(comment, anonMap.get(comment.getAuthor().getId()), currentUserId, replies, liked, likeCount);
+        return new BoardCommentResponse(comment, getDisplayName(comment, anonMap), currentUserId, replies, liked, likeCount);
     }
 
     private BoardPost getPostOrThrow(Long postId) {
@@ -161,9 +162,25 @@ public class BoardCommentService {
     }
 
     private void validateCommentAuthor(BoardComment comment, Long userId) {
-        if (userId == null || !userId.equals(comment.getAuthor().getId())) {
+        if (userId == null || comment.getAuthor() == null || !userId.equals(comment.getAuthor().getId())) {
             log.warn("댓글 수정/삭제 권한 없음: commentId={}, userId={}", comment.getId(), userId);
             throw new AccessDeniedException("댓글 수정/삭제 권한이 없습니다.");
         }
+    }
+
+    private Long getAuthorId(BoardPost post) {
+        return post.getAuthor() == null ? null : post.getAuthor().getId();
+    }
+
+    private Long getAuthorId(BoardComment comment) {
+        return comment.getAuthor() == null ? null : comment.getAuthor().getId();
+    }
+
+    private String getDisplayName(BoardComment comment, Map<Long, String> anonMap) {
+        Long authorId = getAuthorId(comment);
+        if (authorId == null) {
+            return "탈퇴한 사용자";
+        }
+        return anonMap.getOrDefault(authorId, "익명");
     }
 }

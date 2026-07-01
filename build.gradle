@@ -36,6 +36,21 @@ dependencies {
     testCompileOnly 'org.projectlombok:lombok'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testAnnotationProcessor 'org.projectlombok:lombok'
+    // Import the AWS SDK BOM to manage versions consistently
+    implementation platform('software.amazon.awssdk:bom:2.27.21')
+    
+    // Core S3 dependency (provides software.amazon.awssdk.services.s3.S3Client)
+    implementation 'software.amazon.awssdk:s3'
+    
+    // Recommended: Optimized Apache HTTP client for production environments
+    implementation 'software.amazon.awssdk:apache-client'
+
+    // Import the AWS SDK BOM to manage versions automatically
+    implementation platform('software.amazon.awssdk:bom:2.27.21')
+
+    // Add specific AWS service dependencies without version numbers
+    implementation 'software.amazon.awssdk:s3'
+    implementation 'software.amazon.awssdk:dynamodb'
 }
 
 tasks.named('test') {

@@ -24,6 +24,7 @@ import java.io.IOException;
 public class FirebaseAuthenticationFilter extends OncePerRequestFilter {
 
     private static final String BEARER_PREFIX = "Bearer ";
+    private static final String FIREBASE_ID_TOKEN_HEADER = "X-Firebase-Id-Token";
 
     private final FirebaseTokenVerifier firebaseTokenVerifier;
     private final UserRepository userRepository;
@@ -63,6 +64,11 @@ public class FirebaseAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private String resolveToken(HttpServletRequest request) {
+        String firebaseIdTokenHeader = request.getHeader(FIREBASE_ID_TOKEN_HEADER);
+        if (StringUtils.hasText(firebaseIdTokenHeader)) {
+            return firebaseIdTokenHeader.trim();
+        }
+
         String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
 
         if (!StringUtils.hasText(authorizationHeader)) {
