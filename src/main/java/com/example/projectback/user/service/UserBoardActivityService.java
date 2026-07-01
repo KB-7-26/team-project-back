@@ -45,4 +45,15 @@ public class UserBoardActivityService {
                         boardPostImageRepository.countByPostId(post.getId()) > 0
                 ));
     }
+
+    @Transactional(readOnly = true)
+    public Page<BoardPostListItemResponse> getMyLikedPosts(Pageable pageable) {
+        Long userId = currentUserProvider.getCurrentUserId();
+        return boardPostRepository.findLikedPostsByUserId(userId, pageable)
+                .map(post -> new BoardPostListItemResponse(
+                        post,
+                        boardCommentRepository.countByPostId(post.getId()),
+                        boardPostLikeRepository.countByPostId(post.getId())
+                ));
+    }
 }

@@ -18,7 +18,7 @@ public class BoardPost {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "author_id", nullable = false)
+    @JoinColumn(name = "author_id")
     private User author;
 
     @Column(nullable = false)

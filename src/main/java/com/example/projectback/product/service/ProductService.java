@@ -88,10 +88,12 @@ public class ProductService {
                 product.getSaleStatus(),
                 product.getLocation(),
                 product.getViewCount(),
+                product.getCategory().getId(),
                 product.getCategory().getName(),
                 product.getSeller().getId(),
                 product.getSeller().getNickname(),
                 product.getSeller().getProfileImageUrl(),
+                product.getSeller().getTrustScore(),
                 images,
                 favoriteCount,
                 product.getCreatedAt()
@@ -200,4 +202,5 @@ public class ProductService {
     }
 
 }
+
 

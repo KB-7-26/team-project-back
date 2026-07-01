@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import jakarta.persistence.EntityNotFoundException;
+import com.example.projectback.security.FirebaseAuthenticationException;
 
 import java.util.NoSuchElementException;
 
@@ -38,6 +39,11 @@ public class GlobalExceptionHandler {
             AuthenticationCredentialsNotFoundException exception
     ) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiErrorResponse.of(exception.getMessage()));
+    }
+
+    @ExceptionHandler(FirebaseAuthenticationException.class)
+    public ResponseEntity<ApiErrorResponse> handleFirebaseAuthenticationException(FirebaseAuthenticationException exception) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiErrorResponse.of("유효하지 않은 Firebase 토큰입니다."));
     }
 
     @ExceptionHandler(AccessDeniedException.class)

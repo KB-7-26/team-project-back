@@ -18,6 +18,6 @@ public interface BoardPostReportRepository extends JpaRepository<BoardPostReport
     @Query("SELECT COUNT(r) FROM BoardPostReport r WHERE r.post.author.id = :userId")
     long countByPostAuthorId(@Param("userId") Long userId);
 
-    @Query("SELECT DISTINCT r.post.author.id FROM BoardPostReport r")
+    @Query("SELECT DISTINCT r.post.author.id FROM BoardPostReport r WHERE r.post.author IS NOT NULL")
     List<Long> findDistinctReportedAuthorIds();
 }

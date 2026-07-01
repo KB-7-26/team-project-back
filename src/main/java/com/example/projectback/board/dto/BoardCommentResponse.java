@@ -25,7 +25,9 @@ public class BoardCommentResponse {
         this.displayName = displayName;
         this.content = comment.getContent();
         this.createdAt = comment.getCreatedAt();
-        this.isOwner = currentUserId != null && currentUserId.equals(comment.getAuthor().getId());
+        this.isOwner = currentUserId != null
+                && comment.getAuthor() != null
+                && currentUserId.equals(comment.getAuthor().getId());
         this.liked = liked;
         this.likeCount = likeCount;
         this.replies = replies;

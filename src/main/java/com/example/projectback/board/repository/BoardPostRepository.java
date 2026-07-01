@@ -40,6 +40,28 @@ public interface BoardPostRepository extends JpaRepository<BoardPost, Long> {
     )
     Page<BoardPost> findCommentedPostsByAuthorId(@Param("authorId") Long authorId, Pageable pageable);
 
+    @Query(
+            value = """
+                    SELECT p
+                    FROM BoardPost p
+                    WHERE p.id IN (
+                        SELECT l.post.id
+                        FROM BoardPostLike l
+                        WHERE l.user.id = :userId
+                    )
+                    """,
+            countQuery = """
+                    SELECT COUNT(p)
+                    FROM BoardPost p
+                    WHERE p.id IN (
+                        SELECT l.post.id
+                        FROM BoardPostLike l
+                        WHERE l.user.id = :userId
+                    )
+                    """
+    )
+    Page<BoardPost> findLikedPostsByUserId(@Param("userId") Long userId, Pageable pageable);
+
     @Query("""
             SELECT p FROM BoardPost p
             WHERE (:category IS NULL OR p.category = :category)
@@ -88,4 +110,8 @@ public interface BoardPostRepository extends JpaRepository<BoardPost, Long> {
 
     @Query("SELECT p.id FROM BoardPost p WHERE p.author.id = :authorId")
     List<Long> findIdsByAuthorId(@Param("authorId") Long authorId);
+
+    @Modifying(clearAutomatically = true)
+    @Query("UPDATE BoardPost p SET p.author = null WHERE p.author.id = :authorId")
+    void clearAuthorByAuthorId(@Param("authorId") Long authorId);
 }

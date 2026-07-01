@@ -26,6 +26,8 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
         @org.springframework.data.repository.query.Param("roomIds") List<Long> roomIds
     );
 
+    void deleteByChatRoomIdIn(List<Long> chatRoomIds);
+
     // 여러 채팅방의 안 읽은 메시지 수를 한 번에 조회 (N+1 방지)
     @org.springframework.data.jpa.repository.Query(
         "SELECT cm.chatRoom.id, COUNT(cm) FROM ChatMessage cm " +

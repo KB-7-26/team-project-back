@@ -35,4 +35,9 @@ public class AuthController {
         AuthMeResponse response = authService.createProfile(principal, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+
+    @PostMapping("/verify-email")
+    public ResponseEntity<AuthMeResponse> verifyEmail(@AuthenticationPrincipal FirebaseUserPrincipal principal) {
+        return ResponseEntity.ok(authService.verifyEmail(principal));
+    }
 }

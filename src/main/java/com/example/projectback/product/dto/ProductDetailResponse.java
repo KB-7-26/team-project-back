@@ -18,10 +18,12 @@ public class ProductDetailResponse {
     private String saleStatus;
     private String location;
     private Integer viewCount;
+    private Long categoryId;
     private String categoryName;
     private Long sellerId;
     private String sellerNickname;
     private String sellerProfileImageUrl;
+    private Integer sellerTrustScore;
     private List<ProductImageUploadResponse> images;
     private Long favoriteCount;
     private LocalDateTime createdAt;

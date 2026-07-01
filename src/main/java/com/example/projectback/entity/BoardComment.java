@@ -24,7 +24,7 @@ public class BoardComment {
     private BoardPost post;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "author_id", nullable = false)
+    @JoinColumn(name = "author_id")
     private User author;
 
     @ManyToOne(fetch = FetchType.LAZY)
