@@ -3,6 +3,12 @@ spring:
     import: "optional:file:.env[.properties]"
   application:
     name: project-back
+  cloud:
+    aws:
+      region:
+        static: "${AWS_REGION:ap-northeast-2}"
+      s3:
+        enabled: "${SPRING_CLOUD_AWS_S3_ENABLED:false}"
   servlet:
     multipart:
       max-file-size: 5MB
