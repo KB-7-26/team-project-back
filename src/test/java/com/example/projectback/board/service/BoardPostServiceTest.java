@@ -259,6 +259,47 @@ class BoardPostServiceTest {
                 .hasMessage("존재하지 않는 사용자입니다.");
     }
 
+    @Test
+    @DisplayName("게시글 등록 실패 - 제목과 내용은 공백만 입력할 수 없음")
+    void createPost_blankPayload_throwsException() {
+        // given
+        BoardPostCreateRequest blankTitleRequest = new BoardPostCreateRequest(null, " \n\t\u00A0\u200B ", "내용");
+        BoardPostCreateRequest blankContentRequest = new BoardPostCreateRequest(null, "제목", " \n\t\u00A0\u200B ");
+
+        // when & then
+        assertThatThrownBy(() -> boardPostService.createPost(1L, blankTitleRequest))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("제목을 입력해주세요.");
+
+        assertThatThrownBy(() -> boardPostService.createPost(1L, blankContentRequest))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("내용을 입력해주세요.");
+    }
+
+    @Test
+    @DisplayName("게시글 등록 실패 - 제목은 255자를 넘을 수 없음")
+    void createPost_titleTooLong_throwsException() {
+        // given
+        BoardPostCreateRequest request = new BoardPostCreateRequest(null, "가".repeat(256), "내용");
+
+        // when & then
+        assertThatThrownBy(() -> boardPostService.createPost(1L, request))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("제목은 최대 255자까지 입력할 수 있습니다.");
+    }
+
+    @Test
+    @DisplayName("게시글 등록 실패 - 내용은 TEXT 컬럼 바이트 한도를 넘을 수 없음")
+    void createPost_contentTooLarge_throwsException() {
+        // given
+        BoardPostCreateRequest request = new BoardPostCreateRequest(null, "제목", "a".repeat(65_536));
+
+        // when & then
+        assertThatThrownBy(() -> boardPostService.createPost(1L, request))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("내용이 DB 저장 한도를 초과했습니다.");
+    }
+
     // ── updatePost ───────────────────────────────────────────
 
     @Test

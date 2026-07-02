@@ -59,9 +59,9 @@ public class TransactionService {
         transactionRepository.save(transaction);
         transaction.complete();
 
-        // 상품 상태를 거래완료로 변경
+        // 상품 상태를 판매완료로 변경
         Product product = chatRoom.getProduct();
-        product.updateSaleStatus("completed");
+        product.updateSaleStatus("sold");
 
         return new TransactionResponse(
                 transaction.getId(),
