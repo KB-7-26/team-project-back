@@ -11,10 +11,15 @@ import com.example.projectback.security.CurrentUserProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
-
 import java.util.List;
 
 @RestController
@@ -38,9 +43,6 @@ public class ChatRoomController {
         return ResponseEntity.ok(ApiResponse.success(response, "채팅방 목록 조회 성공"));
     }
 
-    // 채팅방 입장 시 읽음 처리
-    // 응답: opponentLastReadAt (초기 렌더링 시 각 메시지 읽음 표시 기준)
-    // WebSocket: readerId + readAt (상대방 실시간 읽음 표시 갱신)
     @PatchMapping("/{roomId}/read")
     public ResponseEntity<ApiResponse<ChatRoomReadResponse>> markAsRead(@PathVariable Long roomId) {
         LocalDateTime opponentLastReadAt = chatRoomService.markAsRead(roomId);
@@ -55,7 +57,12 @@ public class ChatRoomController {
                 new ChatRoomReadResponse(opponentLastReadAt), "읽음 처리 성공"));
     }
 
-    // 전체 안 읽은 메시지 수 (네비바 뱃지용)
+    @PatchMapping("/{roomId}/leave")
+    public ResponseEntity<ApiResponse<Boolean>> leaveChatRoom(@PathVariable Long roomId) {
+        chatRoomService.leaveChatRoom(roomId);
+        return ResponseEntity.ok(ApiResponse.success(true, "채팅방 나가기 성공"));
+    }
+
     @GetMapping("/unread-count")
     public ResponseEntity<ApiResponse<Long>> getUnreadCount() {
         long count = chatRoomService.getTotalUnreadCount();
