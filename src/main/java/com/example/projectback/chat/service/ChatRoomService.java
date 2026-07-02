@@ -8,6 +8,7 @@ import com.example.projectback.chat.repository.ChatRoomRepository;
 import com.example.projectback.entity.ChatRoom;
 import com.example.projectback.entity.Product;
 import com.example.projectback.entity.User;
+import com.example.projectback.product.repository.ProductImageRepository;
 import com.example.projectback.product.repository.ProductRepository;
 import com.example.projectback.security.CurrentUserProvider;
 import jakarta.persistence.EntityNotFoundException;
@@ -26,6 +27,7 @@ public class ChatRoomService {
     private final ChatRoomRepository chatRoomRepository;
     private final ChatMessageRepository chatMessageRepository;
     private final ProductRepository productRepository;
+    private final ProductImageRepository productImageRepository;
     private final CurrentUserProvider currentUserProvider;
 
     // 채팅방에서 상대방 ID 반환
@@ -110,8 +112,14 @@ public class ChatRoomService {
                     room.getId(),
                     room.getProduct().getId(),
                     room.getProduct().getTitle(),
+                    productImageRepository.findFirstByProductIdOrderBySortOrderAsc(room.getProduct().getId())
+                            .map(image -> image.getImageUrl())
+                            .orElse(null),
+                    room.getProduct().getPrice(),
+                    room.getProduct().getIsFree(),
                     opponent.getId(),
                     opponent.getNickname(),
+                    opponent.getProfileImageUrl(),
                     room.getLastMessageAt(),
                     room.getCreatedAt(),
                     unread,

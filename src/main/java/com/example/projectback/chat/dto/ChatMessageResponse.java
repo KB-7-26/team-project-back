@@ -13,6 +13,7 @@ public class ChatMessageResponse {
     private Long chatRoomId;
     private Long senderId;
     private String senderNickname;
+    private String senderProfileImageUrl;
     private String content;
     private LocalDateTime createdAt;
 }
