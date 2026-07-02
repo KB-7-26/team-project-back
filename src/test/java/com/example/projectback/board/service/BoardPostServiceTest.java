@@ -12,6 +12,7 @@ import com.example.projectback.board.repository.BoardPostImageRepository;
 import com.example.projectback.board.repository.BoardPostRepository;
 import com.example.projectback.entity.BoardPost;
 import com.example.projectback.entity.User;
+import com.example.projectback.entity.UserRole;
 import com.example.projectback.image.service.ImageStorageService;
 import com.example.projectback.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -277,6 +278,20 @@ class BoardPostServiceTest {
     }
 
     @Test
+    @DisplayName("게시글 등록 실패 - 공지는 관리자만 작성 가능")
+    void createPost_noticeCategoryRequiresAdmin() {
+        // given
+        given(mockUser.getRole()).willReturn(UserRole.USER);
+        given(userRepository.findById(1L)).willReturn(Optional.of(mockUser));
+        BoardPostCreateRequest request = new BoardPostCreateRequest("공지", "제목", "내용");
+
+        // when & then
+        assertThatThrownBy(() -> boardPostService.createPost(1L, request))
+                .isInstanceOf(AccessDeniedException.class)
+                .hasMessage("공지 카테고리는 관리자만 사용할 수 있습니다.");
+    }
+
+    @Test
     @DisplayName("게시글 등록 실패 - 제목은 255자를 넘을 수 없음")
     void createPost_titleTooLong_throwsException() {
         // given
@@ -347,6 +362,29 @@ class BoardPostServiceTest {
         assertThatThrownBy(() -> boardPostService.updatePost(1L, 2L, request))
                 .isInstanceOf(AccessDeniedException.class)
                 .hasMessage("게시글 수정/삭제 권한이 없습니다.");
+    }
+
+    @Test
+    @DisplayName("게시글 수정 실패 - 공지는 관리자만 선택 가능")
+    void updatePost_noticeCategoryRequiresAdmin() {
+        // given
+        User author = mock(User.class);
+        given(author.getId()).willReturn(1L);
+        given(author.getRole()).willReturn(UserRole.USER);
+
+        BoardPost post = BoardPost.builder()
+                .author(author)
+                .title("기존 제목")
+                .content("기존 내용")
+                .build();
+
+        BoardPostUpdateRequest request = new BoardPostUpdateRequest("공지", "수정 제목", "수정 내용");
+        given(boardPostRepository.findById(1L)).willReturn(Optional.of(post));
+
+        // when & then
+        assertThatThrownBy(() -> boardPostService.updatePost(1L, 1L, request))
+                .isInstanceOf(AccessDeniedException.class)
+                .hasMessage("공지 카테고리는 관리자만 사용할 수 있습니다.");
     }
 
     // ── deletePost ───────────────────────────────────────────

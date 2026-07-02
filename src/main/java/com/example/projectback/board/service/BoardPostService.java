@@ -5,6 +5,7 @@ import com.example.projectback.board.repository.*;
 import com.example.projectback.entity.BoardPost;
 import com.example.projectback.entity.BoardPostImage;
 import com.example.projectback.entity.User;
+import com.example.projectback.entity.UserRole;
 import com.example.projectback.image.service.ImageStorageService;
 import com.example.projectback.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -41,6 +42,7 @@ public class BoardPostService {
     private final ImageStorageService imageStorageService;
 
     public static final List<String> CATEGORIES = List.of("자유게시판", "공지", "전공", "비전공", "취업");
+    private static final String NOTICE_CATEGORY = "공지";
     private static final int TITLE_MAX_LENGTH = 255;
     private static final int CONTENT_MAX_BYTES = 65_535;
     private static final String INVISIBLE_TEXT_REGEX = "[\\u200B\\u200C\\u200D\\uFEFF]";
@@ -117,6 +119,7 @@ public class BoardPostService {
 
         User author = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
+        validateCategoryPermission(request.getCategory(), author);
 
         BoardPost post = BoardPost.builder()
                 .author(author)
@@ -138,6 +141,7 @@ public class BoardPostService {
         String title = normalizePostText(request.getTitle());
         String content = normalizePostText(request.getContent());
         validatePostPayload(title, content);
+        validateCategoryPermission(request.getCategory(), post.getAuthor());
 
         post.update(request.getCategory(), title, content);
         log.info("게시글 수정: postId={}, userId={}", postId, userId);
@@ -216,6 +220,12 @@ public class BoardPostService {
         }
         if (content.getBytes(StandardCharsets.UTF_8).length > CONTENT_MAX_BYTES) {
             throw new IllegalArgumentException("내용이 DB 저장 한도를 초과했습니다.");
+        }
+    }
+
+    private void validateCategoryPermission(String category, User user) {
+        if (NOTICE_CATEGORY.equals(category) && (user == null || user.getRole() != UserRole.ADMIN)) {
+            throw new AccessDeniedException("공지 카테고리는 관리자만 사용할 수 있습니다.");
         }
     }
 
