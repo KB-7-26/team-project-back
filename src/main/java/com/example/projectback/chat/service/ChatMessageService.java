@@ -46,6 +46,7 @@ public class ChatMessageService {
                 chatRoomId,
                 sender.getId(),
                 sender.getNickname(),
+                sender.getProfileImageUrl(),
                 message.getContent(),
                 message.getCreatedAt()
         );
@@ -62,6 +63,7 @@ public class ChatMessageService {
                         chatRoomId,
                         msg.getSender().getId(),
                         msg.getSender().getNickname(),
+                        msg.getSender().getProfileImageUrl(),
                         msg.getContent(),
                         msg.getCreatedAt()
                 ))
