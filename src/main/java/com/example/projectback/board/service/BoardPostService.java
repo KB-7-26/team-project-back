@@ -5,6 +5,7 @@ import com.example.projectback.board.repository.*;
 import com.example.projectback.entity.BoardPost;
 import com.example.projectback.entity.BoardPostImage;
 import com.example.projectback.entity.User;
+import com.example.projectback.entity.UserRole;
 import com.example.projectback.image.service.ImageStorageService;
 import com.example.projectback.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,6 +42,10 @@ public class BoardPostService {
     private final ImageStorageService imageStorageService;
 
     public static final List<String> CATEGORIES = List.of("자유게시판", "공지", "전공", "비전공", "취업");
+    private static final String NOTICE_CATEGORY = "공지";
+    private static final int TITLE_MAX_LENGTH = 255;
+    private static final int CONTENT_MAX_BYTES = 65_535;
+    private static final String INVISIBLE_TEXT_REGEX = "[\\u200B\\u200C\\u200D\\uFEFF]";
 
     @Transactional(readOnly = true)
     public List<String> getCategories() {
@@ -107,14 +113,19 @@ public class BoardPostService {
 
     @Transactional
     public BoardPostCreateResponse createPost(Long userId, BoardPostCreateRequest request) {
+        String title = normalizePostText(request.getTitle());
+        String content = normalizePostText(request.getContent());
+        validatePostPayload(title, content);
+
         User author = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
+        validateCategoryPermission(request.getCategory(), author);
 
         BoardPost post = BoardPost.builder()
                 .author(author)
                 .category(request.getCategory())
-                .title(request.getTitle())
-                .content(request.getContent())
+                .title(title)
+                .content(content)
                 .build();
 
         boardPostRepository.save(post);
@@ -127,8 +138,12 @@ public class BoardPostService {
     public BoardPostDetailResponse updatePost(Long postId, Long userId, BoardPostUpdateRequest request) {
         BoardPost post = getPostOrThrow(postId);
         validateAuthor(post, userId);
+        String title = normalizePostText(request.getTitle());
+        String content = normalizePostText(request.getContent());
+        validatePostPayload(title, content);
+        validateCategoryPermission(request.getCategory(), post.getAuthor());
 
-        post.update(request.getCategory(), request.getTitle(), request.getContent());
+        post.update(request.getCategory(), title, content);
         log.info("게시글 수정: postId={}, userId={}", postId, userId);
 
         boolean liked = boardPostLikeRepository.existsByUserIdAndPostId(userId, postId);
@@ -191,6 +206,61 @@ public class BoardPostService {
             log.warn("게시글 수정/삭제 권한 없음: postId={}, userId={}", post.getId(), userId);
             throw new AccessDeniedException("게시글 수정/삭제 권한이 없습니다.");
         }
+    }
+
+    private void validatePostPayload(String title, String content) {
+        if (title == null || title.isEmpty()) {
+            throw new IllegalArgumentException("제목을 입력해주세요.");
+        }
+        if (content == null || content.isEmpty()) {
+            throw new IllegalArgumentException("내용을 입력해주세요.");
+        }
+        if (title.codePointCount(0, title.length()) > TITLE_MAX_LENGTH) {
+            throw new IllegalArgumentException("제목은 최대 255자까지 입력할 수 있습니다.");
+        }
+        if (content.getBytes(StandardCharsets.UTF_8).length > CONTENT_MAX_BYTES) {
+            throw new IllegalArgumentException("내용이 DB 저장 한도를 초과했습니다.");
+        }
+    }
+
+    private void validateCategoryPermission(String category, User user) {
+        if (NOTICE_CATEGORY.equals(category) && (user == null || user.getRole() != UserRole.ADMIN)) {
+            throw new AccessDeniedException("공지 카테고리는 관리자만 사용할 수 있습니다.");
+        }
+    }
+
+    private String normalizePostText(String value) {
+        if (value == null) {
+            return null;
+        }
+        return trimUnicodeWhitespace(value.replaceAll(INVISIBLE_TEXT_REGEX, ""));
+    }
+
+    private String trimUnicodeWhitespace(String value) {
+        int start = 0;
+        int end = value.length();
+
+        while (start < end) {
+            int codePoint = value.codePointAt(start);
+            if (!isBlankCodePoint(codePoint)) {
+                break;
+            }
+            start += Character.charCount(codePoint);
+        }
+
+        while (start < end) {
+            int codePoint = value.codePointBefore(end);
+            if (!isBlankCodePoint(codePoint)) {
+                break;
+            }
+            end -= Character.charCount(codePoint);
+        }
+
+        return value.substring(start, end);
+    }
+
+    private boolean isBlankCodePoint(int codePoint) {
+        return Character.isWhitespace(codePoint) || Character.isSpaceChar(codePoint);
     }
 
     @Transactional

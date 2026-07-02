@@ -48,7 +48,7 @@ public class UserBoardActivityController {
     ) {
         Pageable pageable = createPageable(page, size);
         Page<BoardPostListItemResponse> response = userBoardActivityService.getMyLikedPosts(pageable);
-        return ResponseEntity.ok(ApiResponse.success(response, "좋아요 한 글 조회 성공"));
+        return ResponseEntity.ok(ApiResponse.success(response, "추천한 글 조회 성공"));
     }
 
     private Pageable createPageable(int page, int size) {

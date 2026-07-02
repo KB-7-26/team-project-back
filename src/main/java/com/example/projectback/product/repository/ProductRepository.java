@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface ProductRepository extends JpaRepository<Product, Long> {
@@ -15,6 +16,8 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     long countBySellerId(Long sellerId);
 
     long countBySellerIdAndSaleStatus(Long sellerId, String saleStatus);
+
+    long countBySellerIdAndSaleStatusIn(Long sellerId, Collection<String> saleStatuses);
 
     @Query(value = """
             SELECT new com.example.projectback.product.dto.ProductListResponse(
@@ -27,13 +30,13 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             )
             FROM Product p
             WHERE (:categoryId IS NULL OR p.category.id = :categoryId)
-              AND (:saleStatus IS NULL OR :saleStatus = 'all' OR p.saleStatus = :saleStatus)
+              AND (:saleStatus IS NULL OR :saleStatus = 'all' OR p.saleStatus = :saleStatus OR (:saleStatus = 'sold' AND p.saleStatus = 'completed'))
               AND (:keyword IS NULL OR p.title LIKE CONCAT('%', :keyword, '%') OR p.category.name LIKE CONCAT('%', :keyword, '%'))
             """,
             countQuery = """
             SELECT COUNT(p) FROM Product p
             WHERE (:categoryId IS NULL OR p.category.id = :categoryId)
-              AND (:saleStatus IS NULL OR :saleStatus = 'all' OR p.saleStatus = :saleStatus)
+              AND (:saleStatus IS NULL OR :saleStatus = 'all' OR p.saleStatus = :saleStatus OR (:saleStatus = 'sold' AND p.saleStatus = 'completed'))
               AND (:keyword IS NULL OR p.title LIKE CONCAT('%', :keyword, '%') OR p.category.name LIKE CONCAT('%', :keyword, '%'))
             """)
     Page<ProductListResponse> findProductList(@Param("categoryId") Long categoryId,
@@ -52,14 +55,14 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             )
             FROM Product p
             WHERE (:categoryId IS NULL OR p.category.id = :categoryId)
-              AND (:saleStatus IS NULL OR :saleStatus = 'all' OR p.saleStatus = :saleStatus)
+              AND (:saleStatus IS NULL OR :saleStatus = 'all' OR p.saleStatus = :saleStatus OR (:saleStatus = 'sold' AND p.saleStatus = 'completed'))
               AND (:keyword IS NULL OR p.title LIKE CONCAT('%', :keyword, '%') OR p.category.name LIKE CONCAT('%', :keyword, '%'))
             ORDER BY (SELECT COUNT(pf2) FROM ProductFavorite pf2 WHERE pf2.product = p) DESC
             """,
             countQuery = """
             SELECT COUNT(p) FROM Product p
             WHERE (:categoryId IS NULL OR p.category.id = :categoryId)
-              AND (:saleStatus IS NULL OR :saleStatus = 'all' OR p.saleStatus = :saleStatus)
+              AND (:saleStatus IS NULL OR :saleStatus = 'all' OR p.saleStatus = :saleStatus OR (:saleStatus = 'sold' AND p.saleStatus = 'completed'))
               AND (:keyword IS NULL OR p.title LIKE CONCAT('%', :keyword, '%') OR p.category.name LIKE CONCAT('%', :keyword, '%'))
             """)
     Page<ProductListResponse> findProductListOrderByFavoriteCountDesc(@Param("categoryId") Long categoryId,
@@ -78,12 +81,12 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             )
             FROM Product p
             WHERE p.seller.id = :sellerId
-              AND (:saleStatus IS NULL OR :saleStatus = 'all' OR p.saleStatus = :saleStatus)
+              AND (:saleStatus IS NULL OR :saleStatus = 'all' OR p.saleStatus = :saleStatus OR (:saleStatus = 'sold' AND p.saleStatus = 'completed'))
             """,
             countQuery = """
             SELECT COUNT(p) FROM Product p
             WHERE p.seller.id = :sellerId
-              AND (:saleStatus IS NULL OR :saleStatus = 'all' OR p.saleStatus = :saleStatus)
+              AND (:saleStatus IS NULL OR :saleStatus = 'all' OR p.saleStatus = :saleStatus OR (:saleStatus = 'sold' AND p.saleStatus = 'completed'))
             """)
     Page<ProductListResponse> findMyProducts(@Param("sellerId") Long sellerId,
                                              @Param("saleStatus") String saleStatus,

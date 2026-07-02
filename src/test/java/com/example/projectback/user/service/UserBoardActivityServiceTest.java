@@ -94,12 +94,12 @@ class UserBoardActivityServiceTest {
     }
 
     @Test
-    @DisplayName("좋아요 한 글 조회 - 현재 사용자가 좋아요한 게시글을 목록 응답으로 반환")
+    @DisplayName("추천한 글 조회 - 현재 사용자가 추천한 게시글을 목록 응답으로 반환")
     void getMyLikedPosts_returnsCurrentUserLikedPosts() {
         // given
         Long userId = 1L;
         Pageable pageable = PageRequest.of(0, 10);
-        BoardPost post = mockPost(30L, "좋아요 한 글");
+        BoardPost post = mockPost(30L, "추천한 글");
 
         given(currentUserProvider.getCurrentUserId()).willReturn(userId);
         given(boardPostRepository.findLikedPostsByUserId(userId, pageable))
@@ -113,7 +113,7 @@ class UserBoardActivityServiceTest {
         // then
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().get(0).getId()).isEqualTo(30L);
-        assertThat(result.getContent().get(0).getTitle()).isEqualTo("좋아요 한 글");
+        assertThat(result.getContent().get(0).getTitle()).isEqualTo("추천한 글");
         verify(boardPostRepository).findLikedPostsByUserId(userId, pageable);
     }
 
