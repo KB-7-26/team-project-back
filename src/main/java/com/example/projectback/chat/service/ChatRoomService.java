@@ -62,9 +62,10 @@ public class ChatRoomService {
         return chatRoomRepository
                 .findBySellerIdOrBuyerIdOrderByCreatedAtDesc(userId, userId)
                 .stream()
+                .filter(room -> room.isVisibleTo(userId))
                 .mapToLong(room -> {
                     boolean isSeller = room.getSeller().getId().equals(userId);
-                    LocalDateTime lastReadAt = isSeller ? room.getSellerLastReadAt() : room.getBuyerLastReadAt();
+                    LocalDateTime lastReadAt = effectiveLastReadAt(room, userId, isSeller);
 
                     if (lastReadAt == null) {
                         // 한 번도 읽지 않은 경우 → 상대방 메시지 전체 카운트
@@ -81,7 +82,10 @@ public class ChatRoomService {
         User currentUser = currentUserProvider.getCurrentUser();
         Long userId = currentUser.getId();
 
-        List<ChatRoom> rooms = chatRoomRepository.findByUserIdOrderByLastMessageDesc(userId);
+        List<ChatRoom> rooms = chatRoomRepository.findByUserIdOrderByLastMessageDesc(userId)
+                .stream()
+                .filter(room -> room.isVisibleTo(userId))
+                .toList();
         if (rooms.isEmpty()) return List.of();
 
         List<Long> roomIds = rooms.stream().map(ChatRoom::getId).toList();
@@ -100,7 +104,7 @@ public class ChatRoomService {
                     ? room.getBuyer() : room.getSeller();
 
             boolean isSeller = room.getSeller().getId().equals(userId);
-            LocalDateTime myLastReadAt = isSeller ? room.getSellerLastReadAt() : room.getBuyerLastReadAt();
+            LocalDateTime myLastReadAt = effectiveLastReadAt(room, userId, isSeller);
             LocalDateTime opponentLastReadAt = isSeller ? room.getBuyerLastReadAt() : room.getSellerLastReadAt();
 
             // 안 읽은 수 계산 (lastReadAt null인 방은 전체 카운트)
@@ -131,6 +135,27 @@ public class ChatRoomService {
     }
 
     @Transactional
+    public void leaveChatRoom(Long roomId) {
+        User currentUser = currentUserProvider.getCurrentUser();
+        ChatRoom chatRoom = chatRoomRepository.findById(roomId)
+                .orElseThrow(() -> new EntityNotFoundException("채팅방을 찾을 수 없습니다."));
+
+        if (!chatRoom.isParticipant(currentUser.getId())) {
+            throw new IllegalStateException("채팅방 참여자만 나갈 수 있습니다.");
+        }
+
+        chatRoom.leave(currentUser.getId());
+    }
+
+    private LocalDateTime effectiveLastReadAt(ChatRoom room, Long userId, boolean isSeller) {
+        LocalDateTime lastReadAt = isSeller ? room.getSellerLastReadAt() : room.getBuyerLastReadAt();
+        LocalDateTime leftAt = room.getLeftAt(userId);
+        if (leftAt != null && (lastReadAt == null || leftAt.isAfter(lastReadAt))) {
+            return leftAt;
+        }
+        return lastReadAt;
+    }
+    @Transactional
     public ChatRoomCreateResponse createChatRoom(ChatRoomCreateRequest request) {
         // 현재 로그인한 사용자 = 구매자
         User buyer = currentUserProvider.getCurrentUser();
@@ -144,13 +169,16 @@ public class ChatRoomService {
 
         // 이미 채팅방이 존재하면 기존 채팅방 반환
         return chatRoomRepository.findByProductIdAndBuyerId(product.getId(), buyer.getId())
-                .map(existing -> new ChatRoomCreateResponse(
-                        existing.getId(),
-                        existing.getProduct().getId(),
-                        existing.getSeller().getId(),
-                        existing.getBuyer().getId(),
-                        existing.getCreatedAt()
-                ))
+                .map(existing -> {
+                    existing.rejoin(buyer.getId());
+                    return new ChatRoomCreateResponse(
+                            existing.getId(),
+                            existing.getProduct().getId(),
+                            existing.getSeller().getId(),
+                            existing.getBuyer().getId(),
+                            existing.getCreatedAt()
+                    );
+                })
                 .orElseGet(() -> {
                     // 새 채팅방 생성
                     ChatRoom chatRoom = ChatRoom.builder()

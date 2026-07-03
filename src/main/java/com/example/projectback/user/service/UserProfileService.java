@@ -19,12 +19,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class UserProfileService {
 
     private static final String SALE_STATUS_AVAILABLE = "available";
     private static final String SALE_STATUS_SOLD = "sold";
+    private static final String SALE_STATUS_COMPLETED_LEGACY = "completed";
 
     private final UserRepository userRepository;
     private final BoardPostRepository boardPostRepository;
@@ -97,7 +100,7 @@ public class UserProfileService {
     private UserProfileStatsResponse getProfileStats(Long userId) {
         return new UserProfileStatsResponse(
                 productRepository.countBySellerIdAndSaleStatus(userId, SALE_STATUS_AVAILABLE),
-                productRepository.countBySellerIdAndSaleStatus(userId, SALE_STATUS_SOLD),
+                productRepository.countBySellerIdAndSaleStatusIn(userId, List.of(SALE_STATUS_SOLD, SALE_STATUS_COMPLETED_LEGACY)),
                 productFavoriteRepository.countByUserId(userId),
                 boardPostRepository.countByAuthorId(userId),
                 boardCommentRepository.countByAuthorId(userId)
