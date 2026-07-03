@@ -3,6 +3,8 @@ package com.example.projectback.board.service;
 import com.example.projectback.board.dto.BoardCommentCreateRequest;
 import com.example.projectback.board.dto.BoardCommentResponse;
 import com.example.projectback.board.dto.BoardCommentUpdateRequest;
+import com.example.projectback.board.dto.CommentSocketMessage;
+import com.example.projectback.board.dto.CommentSocketPayload;
 import com.example.projectback.board.repository.BoardCommentLikeRepository;
 import com.example.projectback.board.repository.BoardCommentRepository;
 import com.example.projectback.board.repository.BoardPostRepository;
@@ -12,6 +14,7 @@ import com.example.projectback.entity.User;
 import com.example.projectback.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +34,7 @@ public class BoardCommentService {
     private final BoardCommentLikeRepository boardCommentLikeRepository;
     private final BoardPostRepository boardPostRepository;
     private final UserRepository userRepository;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @Transactional(readOnly = true)
     public List<BoardCommentResponse> getComments(Long postId, Long currentUserId) {
@@ -75,8 +79,21 @@ public class BoardCommentService {
 
         List<BoardComment> allComments = boardCommentRepository.findByPostIdOrderByCreatedAtAsc(postId);
         Map<Long, String> anonMap = buildAnonMap(allComments, getAuthorId(post));
+        String displayName = getDisplayName(comment, anonMap);
 
-        return new BoardCommentResponse(comment, getDisplayName(comment, anonMap), userId, List.of(), false, 0L);
+        messagingTemplate.convertAndSend(
+                "/topic/board/" + postId + "/comments",
+                new CommentSocketMessage("CREATE", CommentSocketPayload.builder()
+                        .commentId(comment.getId())
+                        .parentCommentId(parentComment != null ? parentComment.getId() : null)
+                        .writerId(userId)
+                        .displayName(displayName)
+                        .content(comment.getContent())
+                        .createdAt(comment.getCreatedAt())
+                        .build())
+        );
+
+        return new BoardCommentResponse(comment, displayName, userId, List.of(), false, 0L);
     }
 
     @Transactional
@@ -88,6 +105,14 @@ public class BoardCommentService {
 
         comment.update(request.getContent());
         log.info("댓글 수정: postId={}, commentId={}, userId={}", postId, commentId, userId);
+
+        messagingTemplate.convertAndSend(
+                "/topic/board/" + postId + "/comments",
+                new CommentSocketMessage("UPDATE", CommentSocketPayload.builder()
+                        .commentId(commentId)
+                        .content(request.getContent())
+                        .build())
+        );
 
         List<BoardComment> allComments = boardCommentRepository.findByPostIdOrderByCreatedAtAsc(postId);
         Map<Long, String> anonMap = buildAnonMap(allComments, getAuthorId(post));
@@ -106,6 +131,13 @@ public class BoardCommentService {
 
         boardCommentRepository.delete(comment);
         log.info("댓글 삭제: postId={}, commentId={}, userId={}", postId, commentId, userId);
+
+        messagingTemplate.convertAndSend(
+                "/topic/board/" + postId + "/comments",
+                new CommentSocketMessage("DELETE", CommentSocketPayload.builder()
+                        .commentId(commentId)
+                        .build())
+        );
     }
 
     private Map<Long, String> buildAnonMap(List<BoardComment> allComments, Long postAuthorId) {
