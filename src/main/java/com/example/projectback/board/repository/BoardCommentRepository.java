@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface BoardCommentRepository extends JpaRepository<BoardComment, Long> {
@@ -14,6 +15,12 @@ public interface BoardCommentRepository extends JpaRepository<BoardComment, Long
     long countByPostId(Long postId);
 
     long countByAuthorId(Long authorId);
+
+    long countByAuthorIdAndCreatedAtGreaterThanEqualAndCreatedAtLessThan(
+            Long authorId,
+            LocalDateTime startAt,
+            LocalDateTime endAt
+    );
 
     @Query("SELECT c.id FROM BoardComment c WHERE c.post.id = :postId")
     List<Long> findIdsByPostId(@Param("postId") Long postId);

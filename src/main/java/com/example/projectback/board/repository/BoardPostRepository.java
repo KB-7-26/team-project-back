@@ -18,6 +18,12 @@ public interface BoardPostRepository extends JpaRepository<BoardPost, Long> {
 
     long countByAuthorId(Long authorId);
 
+    long countByAuthorIdAndCreatedAtGreaterThanEqualAndCreatedAtLessThan(
+            Long authorId,
+            LocalDateTime startAt,
+            LocalDateTime endAt
+    );
+
     @Query(
             value = """
                     SELECT p
