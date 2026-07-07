@@ -2,10 +2,12 @@ package com.example.projectback.user.service;
 
 import com.example.projectback.board.dto.BoardPostListItemResponse;
 import com.example.projectback.board.repository.BoardCommentRepository;
+import com.example.projectback.board.repository.BoardPostImageRepository;
 import com.example.projectback.board.repository.BoardPostLikeRepository;
 import com.example.projectback.board.repository.BoardPostRepository;
 import com.example.projectback.entity.BoardPost;
 import com.example.projectback.security.CurrentUserProvider;
+import com.example.projectback.user.dto.BoardEventDailyStatsResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,6 +23,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.lenient;
@@ -38,6 +41,9 @@ class UserBoardActivityServiceTest {
 
     @Mock
     private BoardPostLikeRepository boardPostLikeRepository;
+
+    @Mock
+    private BoardPostImageRepository boardPostImageRepository;
 
     @Mock
     private CurrentUserProvider currentUserProvider;
@@ -58,6 +64,7 @@ class UserBoardActivityServiceTest {
                 .willReturn(new PageImpl<>(List.of(post), pageable, 1));
         lenient().when(boardCommentRepository.countByPostId(anyLong())).thenReturn(0L);
         lenient().when(boardPostLikeRepository.countByPostId(anyLong())).thenReturn(0L);
+        lenient().when(boardPostImageRepository.countByPostId(anyLong())).thenReturn(0);
 
         // when
         Page<BoardPostListItemResponse> result = userBoardActivityService.getMyPosts(pageable);
@@ -82,6 +89,7 @@ class UserBoardActivityServiceTest {
                 .willReturn(new PageImpl<>(List.of(post), pageable, 1));
         lenient().when(boardCommentRepository.countByPostId(anyLong())).thenReturn(0L);
         lenient().when(boardPostLikeRepository.countByPostId(anyLong())).thenReturn(0L);
+        lenient().when(boardPostImageRepository.countByPostId(anyLong())).thenReturn(0);
 
         // when
         Page<BoardPostListItemResponse> result = userBoardActivityService.getMyCommentedPosts(pageable);
@@ -115,6 +123,34 @@ class UserBoardActivityServiceTest {
         assertThat(result.getContent().get(0).getId()).isEqualTo(30L);
         assertThat(result.getContent().get(0).getTitle()).isEqualTo("추천한 글");
         verify(boardPostRepository).findLikedPostsByUserId(userId, pageable);
+    }
+
+    @Test
+    @DisplayName("이벤트 활동 조회 - 7월 7일부터 10일까지 작성글과 댓글 수를 날짜별로 반환")
+    void getBoardEventDailyStats_returnsEventPeriodCounts() {
+        // given
+        Long userId = 1L;
+        given(currentUserProvider.getCurrentUserId()).willReturn(userId);
+        given(boardPostRepository.countByAuthorIdAndCreatedAtGreaterThanEqualAndCreatedAtLessThan(
+                anyLong(), any(LocalDateTime.class), any(LocalDateTime.class)
+        )).willAnswer(invocation -> ((LocalDateTime) invocation.getArgument(1)).getDayOfMonth() - 6L);
+        given(boardCommentRepository.countByAuthorIdAndCreatedAtGreaterThanEqualAndCreatedAtLessThan(
+                anyLong(), any(LocalDateTime.class), any(LocalDateTime.class)
+        )).willAnswer(invocation -> ((LocalDateTime) invocation.getArgument(1)).getDayOfMonth() - 7L);
+
+        // when
+        List<BoardEventDailyStatsResponse> result = userBoardActivityService.getBoardEventDailyStats();
+
+        // then
+        assertThat(result).hasSize(4);
+        assertThat(result).extracting(BoardEventDailyStatsResponse::getDay)
+                .containsExactly(7, 8, 9, 10);
+        assertThat(result).extracting(BoardEventDailyStatsResponse::getPostCount)
+                .containsExactly(1L, 2L, 3L, 4L);
+        assertThat(result).extracting(BoardEventDailyStatsResponse::getCommentCount)
+                .containsExactly(0L, 1L, 2L, 3L);
+        assertThat(result).extracting(BoardEventDailyStatsResponse::getTotalCount)
+                .containsExactly(1L, 3L, 5L, 7L);
     }
 
     private BoardPost mockPost(Long id, String title) {

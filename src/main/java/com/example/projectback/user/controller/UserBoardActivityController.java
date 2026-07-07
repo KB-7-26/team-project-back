@@ -2,6 +2,7 @@ package com.example.projectback.user.controller;
 
 import com.example.projectback.board.dto.BoardPostListItemResponse;
 import com.example.projectback.common.ApiResponse;
+import com.example.projectback.user.dto.BoardEventDailyStatsResponse;
 import com.example.projectback.user.service.UserBoardActivityService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -13,6 +14,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/users/me")
@@ -49,6 +52,12 @@ public class UserBoardActivityController {
         Pageable pageable = createPageable(page, size);
         Page<BoardPostListItemResponse> response = userBoardActivityService.getMyLikedPosts(pageable);
         return ResponseEntity.ok(ApiResponse.success(response, "추천한 글 조회 성공"));
+    }
+
+    @GetMapping("/board-event-stats")
+    public ResponseEntity<ApiResponse<List<BoardEventDailyStatsResponse>>> getBoardEventStats() {
+        List<BoardEventDailyStatsResponse> response = userBoardActivityService.getBoardEventDailyStats();
+        return ResponseEntity.ok(ApiResponse.success(response, "이벤트 활동 조회 성공"));
     }
 
     private Pageable createPageable(int page, int size) {
